@@ -1,8 +1,6 @@
 from datetime import UTC, datetime
 
 import pytest
-from pydantic import ValidationError
-
 from ff_protocol import (
     AnalysisKind,
     CandidateItem,
@@ -12,6 +10,7 @@ from ff_protocol import (
     Platform,
     TranscriptSegment,
 )
+from pydantic import ValidationError
 
 
 def _item(**overrides):

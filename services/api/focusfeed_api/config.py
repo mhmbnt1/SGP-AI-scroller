@@ -33,7 +33,7 @@ class Settings(BaseSettings):
 
     ff_mode: Literal["test", "demo", "live"] = "demo"
     ff_env: Literal["development", "production"] = "development"
-    ff_secret_key: str = "change-me-development-only"
+    ff_secret_key: str = "change-me-development-only"  # noqa: S105
 
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/focusfeed"
     test_database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/focusfeed_test"

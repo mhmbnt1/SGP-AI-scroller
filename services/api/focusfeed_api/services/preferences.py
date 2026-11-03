@@ -21,7 +21,13 @@ def get_or_create_profile(db: Session, user: User) -> PreferenceProfile:
     return prof
 
 
-def update_profile(db: Session, user: User, body: PreferencesIn, allowed_text_models: list[str], allowed_embedding_models: list[str]) -> PreferenceProfile:
+def update_profile(
+    db: Session,
+    user: User,
+    body: PreferencesIn,
+    allowed_text_models: list[str],
+    allowed_embedding_models: list[str],
+) -> PreferenceProfile:
     prof = get_or_create_profile(db, user)
     prof.interests = body.interests
     prof.exclusions = body.exclusions
@@ -33,7 +39,9 @@ def update_profile(db: Session, user: User, body: PreferencesIn, allowed_text_mo
     prof.consent_saved_signals = body.consent_saved_signals
     prof.consent_feedback_learning = body.consent_feedback_learning
     prof.text_model = body.text_model if (body.text_model in allowed_text_models) else None
-    prof.embedding_model = body.embedding_model if (body.embedding_model in allowed_embedding_models) else None
+    prof.embedding_model = (
+        body.embedding_model if (body.embedding_model in allowed_embedding_models) else None
+    )
     prof.version += 1
     return prof
 
@@ -56,14 +64,13 @@ def build_user_context(db: Session, user_id: uuid.UUID, prof: PreferenceProfile)
     ).all()
     # topics of previously recommended items, to learn topic-level signals
     rec_topics: dict[uuid.UUID, list[str]] = {}
-    for rec in db.scalars(select(Recommendation).where(Recommendation.user_id == user_id)).all():
-        rec_topics.setdefault(rec.item_id, list(rec.topics or []))
-        ctx.previously_recommended_keys.add((rec.platform, ""))  # placeholder replaced below
-    ctx.previously_recommended_keys = set()
     for rec, item in db.execute(
-        select(Recommendation, ContentItem).join(ContentItem, ContentItem.id == Recommendation.item_id).where(Recommendation.user_id == user_id)
+        select(Recommendation, ContentItem)
+        .join(ContentItem, ContentItem.id == Recommendation.item_id)
+        .where(Recommendation.user_id == user_id)
     ).all():
         ctx.previously_recommended_keys.add((item.platform, item.external_id))
+        rec_topics.setdefault(item.id, list(rec.topics or []))
     for fb, item in feedback:
         handle = (fb.creator_handle or (item.creator_handle if item else "") or "").lower().lstrip("@")
         if fb.action == "hide_creator" and handle:
@@ -81,7 +88,9 @@ def build_user_context(db: Session, user_id: uuid.UUID, prof: PreferenceProfile)
             for t in rec_topics.get(item.id, []):
                 ctx.not_relevant_topics[t] = ctx.not_relevant_topics.get(t, 0) + 1
     if prof.consent_saved_signals:
-        for saved in db.scalars(select(SavedItem).where(SavedItem.user_id == user_id, SavedItem.removed_at.is_(None))).all():
+        for saved in db.scalars(
+            select(SavedItem).where(SavedItem.user_id == user_id, SavedItem.removed_at.is_(None))
+        ).all():
             for t in rec_topics.get(saved.item_id, []):
                 ctx.saved_topics[t] = ctx.saved_topics.get(t, 0) + 1
     return ctx
@@ -89,8 +98,14 @@ def build_user_context(db: Session, user_id: uuid.UUID, prof: PreferenceProfile)
 
 def snapshot(prof: PreferenceProfile) -> dict:
     return {
-        "version": prof.version, "interests": prof.interests, "exclusions": prof.exclusions,
-        "excluded_creators": prof.excluded_creators, "languages": prof.languages, "platforms": prof.platforms,
-        "per_platform_limit": prof.per_platform_limit, "total_budget_minutes": prof.total_budget_minutes,
-        "consent_saved_signals": prof.consent_saved_signals, "consent_feedback_learning": prof.consent_feedback_learning,
+        "version": prof.version,
+        "interests": prof.interests,
+        "exclusions": prof.exclusions,
+        "excluded_creators": prof.excluded_creators,
+        "languages": prof.languages,
+        "platforms": prof.platforms,
+        "per_platform_limit": prof.per_platform_limit,
+        "total_budget_minutes": prof.total_budget_minutes,
+        "consent_saved_signals": prof.consent_saved_signals,
+        "consent_feedback_learning": prof.consent_feedback_learning,
     }

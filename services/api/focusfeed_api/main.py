@@ -9,7 +9,23 @@ from focusfeed_api import __version__
 from focusfeed_api.config import Settings, get_settings
 from focusfeed_api.errors import install_error_handlers
 from focusfeed_api.middleware import RequestContextMiddleware, configure_logging
-from focusfeed_api.routers import auth, batches, collector_jobs, collectors, health, items, jobs, me, models, platforms, preferences, privacy, saved, schedules, search
+from focusfeed_api.routers import (
+    auth,
+    batches,
+    collector_jobs,
+    collectors,
+    health,
+    items,
+    jobs,
+    me,
+    models,
+    platforms,
+    preferences,
+    privacy,
+    saved,
+    schedules,
+    search,
+)
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -35,8 +51,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     install_error_handlers(app)
 
     v1 = APIRouter(prefix="/api/v1")
-    for r in (auth.router, me.router, preferences.router, platforms.router, collectors.router, collector_jobs.router, jobs.router,
-              batches.router, search.router, items.router, saved.router, schedules.router, models.router, privacy.router, health.router):
+    for r in (
+        auth.router,
+        me.router,
+        preferences.router,
+        platforms.router,
+        collectors.router,
+        collector_jobs.router,
+        jobs.router,
+        batches.router,
+        search.router,
+        items.router,
+        saved.router,
+        schedules.router,
+        models.router,
+        privacy.router,
+        health.router,
+    ):
         v1.include_router(r)
     app.include_router(v1)
     return app

@@ -38,7 +38,11 @@ def apply_eligibility(cands: list[Candidate], ctx: UserContext, intent: Intent |
         if hit:
             c.exclusion_reason = f"exclusion:{hit[:40]}"
             continue
-        if langs and c.language and c.language.lower().split("-")[0] not in {lang.split("-")[0] for lang in langs}:
+        if (
+            langs
+            and c.language
+            and c.language.lower().split("-")[0] not in {lang.split("-")[0] for lang in langs}
+        ):
             c.exclusion_reason = f"language:{c.language}"
             continue
         if intent is not None:

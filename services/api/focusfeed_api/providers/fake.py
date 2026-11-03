@@ -25,11 +25,75 @@ from focusfeed_api.providers.base import (
 
 _WORD = re.compile(r"[a-zA-Z][a-zA-Z0-9'-]{2,}")
 STOPWORDS = {
-    "the", "and", "for", "with", "that", "this", "you", "your", "are", "from", "have", "how", "what", "why",
-    "into", "about", "just", "than", "then", "them", "they", "will", "can", "all", "our", "out", "more", "most",
-    "not", "but", "its", "it's", "was", "were", "has", "had", "one", "two", "get", "got", "like", "make", "made",
-    "over", "under", "when", "where", "who", "which", "there", "here", "also", "very", "really", "some", "any",
-    "video", "watch", "today", "new", "best", "top", "every", "much", "many", "been", "being", "does", "did",
+    "the",
+    "and",
+    "for",
+    "with",
+    "that",
+    "this",
+    "you",
+    "your",
+    "are",
+    "from",
+    "have",
+    "how",
+    "what",
+    "why",
+    "into",
+    "about",
+    "just",
+    "than",
+    "then",
+    "them",
+    "they",
+    "will",
+    "can",
+    "all",
+    "our",
+    "out",
+    "more",
+    "most",
+    "not",
+    "but",
+    "its",
+    "it's",
+    "was",
+    "were",
+    "has",
+    "had",
+    "one",
+    "two",
+    "get",
+    "got",
+    "like",
+    "make",
+    "made",
+    "over",
+    "under",
+    "when",
+    "where",
+    "who",
+    "which",
+    "there",
+    "here",
+    "also",
+    "very",
+    "really",
+    "some",
+    "any",
+    "video",
+    "watch",
+    "today",
+    "new",
+    "best",
+    "top",
+    "every",
+    "much",
+    "many",
+    "been",
+    "being",
+    "does",
+    "did",
 }
 
 EMBED_DIM = 64
@@ -69,7 +133,9 @@ class FakeProvider:
     def health(self) -> ProviderHealth:
         models = [
             ModelInfo(name="fake-text", purposes={"text"}, json_output=True, context_window=8192),
-            ModelInfo(name="fake-embed", purposes={"embedding"}, embeddings=True, embedding_dimensions=EMBED_DIM),
+            ModelInfo(
+                name="fake-embed", purposes={"embedding"}, embeddings=True, embedding_dimensions=EMBED_DIM
+            ),
         ]
         return ProviderHealth(healthy=True, detail="deterministic fake provider (no network)", models=models)
 
@@ -122,8 +188,12 @@ class FakeProvider:
             parsed = {}
         latency = int((time.perf_counter() - start) * 1000)
         return GenerationResult(
-            parsed=parsed, raw_text=json.dumps(parsed), input_tokens=len(user) // 4,
-            output_tokens=len(json.dumps(parsed)) // 4, latency_ms=latency, model=model,
+            parsed=parsed,
+            raw_text=json.dumps(parsed),
+            input_tokens=len(user) // 4,
+            output_tokens=len(json.dumps(parsed)) // 4,
+            latency_ms=latency,
+            model=model,
         )
 
     # ------------------------------------------------------------------ tasks
@@ -138,7 +208,7 @@ class FakeProvider:
         topics = keyword_topics(text, 5)
         if segments:
             first = " ".join(s.get("text", "") for s in segments[:2]).strip()
-            summary = f"Transcript opens with: \"{first[:220]}\""
+            summary = f'Transcript opens with: "{first[:220]}"'
             refs = allowed_refs[: min(2, len(allowed_refs))]
         else:
             summary = f"Metadata only: {title[:160]}" if title else "Metadata only: no title available."

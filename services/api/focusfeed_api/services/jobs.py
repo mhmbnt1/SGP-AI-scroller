@@ -11,10 +11,10 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from ff_protocol import JobBudget
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
-from ff_protocol import JobBudget
 from focusfeed_api.config import get_settings
 from focusfeed_api.errors import Conflict, NotFound, ValidationFailed
 from focusfeed_api.models import CollectionJob, JobEvent, PreferenceProfile, User
@@ -44,8 +44,18 @@ TRANSITIONS: dict[str, set[str]] = {
     RANKING: {COMPLETED, PARTIAL, CANCELLED, FAILED, RANKING},
 }
 
-PROGRESS = {QUEUED: 5, WAITING: 10, COLLECTING: 35, ENRICHING: 65, RANKING: 85, COMPLETED: 100, PARTIAL: 100,
-            NEEDS_USER_ACTION: 100, CANCELLED: 100, FAILED: 100}
+PROGRESS = {
+    QUEUED: 5,
+    WAITING: 10,
+    COLLECTING: 35,
+    ENRICHING: 65,
+    RANKING: 85,
+    COMPLETED: 100,
+    PARTIAL: 100,
+    NEEDS_USER_ACTION: 100,
+    CANCELLED: 100,
+    FAILED: 100,
+}
 
 NEXT_STEP = {
     QUEUED: "Waiting for the worker to pick up the job.",
@@ -65,7 +75,9 @@ class InvalidTransition(Exception):
     pass
 
 
-def transition(db: Session, job: CollectionJob, new_state: str, *, reason: str = "", event: bool = True) -> None:
+def transition(
+    db: Session, job: CollectionJob, new_state: str, *, reason: str = "", event: bool = True
+) -> None:
     if job.state in TERMINAL:
         raise InvalidTransition(f"{job.state} is terminal")
     if new_state not in TRANSITIONS.get(job.state, set()):
@@ -81,13 +93,27 @@ def transition(db: Session, job: CollectionJob, new_state: str, *, reason: str =
     if reason:
         job.stop_reason = redact_text(reason, 500)
     if event:
-        add_event(db, job, "state", f"{old} -> {new_state}" + (f": {reason}" if reason else ""), {"from": old, "to": new_state})
+        add_event(
+            db,
+            job,
+            "state",
+            f"{old} -> {new_state}" + (f": {reason}" if reason else ""),
+            {"from": old, "to": new_state},
+        )
 
 
-def add_event(db: Session, job: CollectionJob, kind: str, message: str, data: dict[str, Any] | None = None) -> JobEvent:
+def add_event(
+    db: Session, job: CollectionJob, kind: str, message: str, data: dict[str, Any] | None = None
+) -> JobEvent:
     seq = db.scalar(select(func.coalesce(func.max(JobEvent.seq), 0)).where(JobEvent.job_id == job.id)) or 0
-    ev = JobEvent(job_id=job.id, user_id=job.user_id, seq=seq + 1, kind=kind[:48], message=redact_text(message, 1000),
-                  data=redact_mapping(data or {}))
+    ev = JobEvent(
+        job_id=job.id,
+        user_id=job.user_id,
+        seq=seq + 1,
+        kind=kind[:48],
+        message=redact_text(message, 1000),
+        data=redact_mapping(data or {}),
+    )
     db.add(ev)
     db.flush()
     return ev
@@ -100,15 +126,26 @@ def _default_platforms(db: Session, user: User) -> list[str]:
     return ["demo"] if get_settings().ff_mode != "live" else []
 
 
-def derive_idempotency_key(user_id: uuid.UUID, mode: str, query: str | None, platforms: list[str], bucket_minutes: int = 2) -> str:
+def derive_idempotency_key(
+    user_id: uuid.UUID, mode: str, query: str | None, platforms: list[str], bucket_minutes: int = 2
+) -> str:
     bucket = int(datetime.now(UTC).timestamp() // (bucket_minutes * 60))
     raw = json.dumps([str(user_id), mode, (query or "").strip().lower(), sorted(platforms), bucket])
     return "auto-" + hashlib.sha256(raw.encode()).hexdigest()[:32]
 
 
-def create_job(db: Session, user: User, *, mode: str, query: str | None, platforms: list[str] | None,
-               budget: JobBudget | None, idempotency_key: str | None, source: str = "manual",
-               schedule_id: uuid.UUID | None = None) -> tuple[CollectionJob, bool]:
+def create_job(
+    db: Session,
+    user: User,
+    *,
+    mode: str,
+    query: str | None,
+    platforms: list[str] | None,
+    budget: JobBudget | None,
+    idempotency_key: str | None,
+    source: str = "manual",
+    schedule_id: uuid.UUID | None = None,
+) -> tuple[CollectionJob, bool]:
     settings = get_settings()
     plats = platforms or _default_platforms(db, user)
     if not plats:
@@ -118,20 +155,39 @@ def create_job(db: Session, user: User, *, mode: str, query: str | None, platfor
     if mode == "search" and not (query and query.strip()):
         raise ValidationFailed("A search query is required in search mode.", code="query_required")
     key = idempotency_key or derive_idempotency_key(user.id, mode, query, plats)
-    existing = db.scalar(select(CollectionJob).where(CollectionJob.user_id == user.id, CollectionJob.idempotency_key == key))
+    existing = db.scalar(
+        select(CollectionJob).where(CollectionJob.user_id == user.id, CollectionJob.idempotency_key == key)
+    )
     if existing is not None:
         return existing, False
-    active = db.scalar(
-        select(func.count()).select_from(CollectionJob).where(CollectionJob.user_id == user.id, CollectionJob.state.in_(ACTIVE))
-    ) or 0
+    active = (
+        db.scalar(
+            select(func.count())
+            .select_from(CollectionJob)
+            .where(CollectionJob.user_id == user.id, CollectionJob.state.in_(ACTIVE))
+        )
+        or 0
+    )
     if active >= settings.ff_max_jobs_per_user_active:
-        raise Conflict("You already have jobs running. Wait for them to finish or cancel one.", code="too_many_active_jobs")
+        raise Conflict(
+            "You already have jobs running. Wait for them to finish or cancel one.",
+            code="too_many_active_jobs",
+        )
     prof = db.scalar(select(PreferenceProfile).where(PreferenceProfile.user_id == user.id))
     b = (budget or JobBudget()).model_dump()
     job = CollectionJob(
-        user_id=user.id, mode=mode, query=(query or None), platforms=plats, budget=b, state=QUEUED,
-        platform_states={p: "pending" for p in plats}, idempotency_key=key, source=source, schedule_id=schedule_id,
-        preferences_version=prof.version if prof else 1, max_attempts=max(1, b.get("max_retry_attempts", 2) + 1),
+        user_id=user.id,
+        mode=mode,
+        query=(query or None),
+        platforms=plats,
+        budget=b,
+        state=QUEUED,
+        platform_states={p: "pending" for p in plats},
+        idempotency_key=key,
+        source=source,
+        schedule_id=schedule_id,
+        preferences_version=prof.version if prof else 1,
+        max_attempts=max(1, b.get("max_retry_attempts", 2) + 1),
         deadline_at=datetime.now(UTC) + timedelta(seconds=b.get("max_wall_clock_seconds", 600)),
     )
     db.add(job)
@@ -199,7 +255,9 @@ def renew_worker_lease(db: Session, job: CollectionJob, worker_id: str, lease_se
     return True
 
 
-def claim_for_device(db: Session, device_id: uuid.UUID, user_id: uuid.UUID, platforms: list[str], lease_seconds: int) -> tuple[CollectionJob, str] | None:
+def claim_for_device(
+    db: Session, device_id: uuid.UUID, user_id: uuid.UUID, platforms: list[str], lease_seconds: int
+) -> tuple[CollectionJob, str] | None:
     now = datetime.now(UTC)
     stmt = (
         select(CollectionJob)
@@ -237,7 +295,9 @@ def verify_device_lease(db: Session, job: CollectionJob, device_id: uuid.UUID, l
         raise Conflict("Lease expired. Claim the job again.", code="lease_expired")
 
 
-def renew_device_lease(db: Session, job: CollectionJob, device_id: uuid.UUID, lease_token: str, lease_seconds: int) -> None:
+def renew_device_lease(
+    db: Session, job: CollectionJob, device_id: uuid.UUID, lease_token: str, lease_seconds: int
+) -> None:
     verify_device_lease(db, job, device_id, lease_token)
     job.lease_expires_at = datetime.now(UTC) + timedelta(seconds=lease_seconds)
 
@@ -250,5 +310,13 @@ def schedule_retry(db: Session, job: CollectionJob, reason: str, *, backoff_seco
     job.lease_token_hash = None
     job.lease_owner = None
     job.lease_expires_at = None
-    job.next_attempt_at = datetime.now(UTC) + timedelta(seconds=backoff_seconds * (2 ** max(0, job.attempts - 1)))
-    add_event(db, job, "retry_scheduled", f"attempt {job.attempts} failed: {reason}; retrying", {"next_attempt_at": job.next_attempt_at.isoformat()})
+    job.next_attempt_at = datetime.now(UTC) + timedelta(
+        seconds=backoff_seconds * (2 ** max(0, job.attempts - 1))
+    )
+    add_event(
+        db,
+        job,
+        "retry_scheduled",
+        f"attempt {job.attempts} failed: {reason}; retrying",
+        {"next_attempt_at": job.next_attempt_at.isoformat()},
+    )

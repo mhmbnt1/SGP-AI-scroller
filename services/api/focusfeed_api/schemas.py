@@ -6,9 +6,8 @@ import uuid
 from datetime import datetime
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
-
 from ff_protocol import JobBudget, Platform
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 Str120 = Annotated[str, Field(max_length=120)]
 Str200 = Annotated[str, Field(max_length=200)]
@@ -76,10 +75,18 @@ class MeOut(APIModel):
 
 
 class PreferencesIn(APIModel):
-    interests: list[Annotated[str, Field(min_length=1, max_length=60)]] = Field(default_factory=list, max_length=30)
-    exclusions: list[Annotated[str, Field(min_length=1, max_length=60)]] = Field(default_factory=list, max_length=50)
-    excluded_creators: list[Annotated[str, Field(min_length=1, max_length=200)]] = Field(default_factory=list, max_length=100)
-    languages: list[Annotated[str, Field(min_length=2, max_length=16)]] = Field(default_factory=list, max_length=8)
+    interests: list[Annotated[str, Field(min_length=1, max_length=60)]] = Field(
+        default_factory=list, max_length=30
+    )
+    exclusions: list[Annotated[str, Field(min_length=1, max_length=60)]] = Field(
+        default_factory=list, max_length=50
+    )
+    excluded_creators: list[Annotated[str, Field(min_length=1, max_length=200)]] = Field(
+        default_factory=list, max_length=100
+    )
+    languages: list[Annotated[str, Field(min_length=2, max_length=16)]] = Field(
+        default_factory=list, max_length=8
+    )
     platforms: list[Literal["youtube", "instagram", "tiktok", "x", "linkedin", "demo"]] = Field(
         default_factory=list, max_length=6
     )
@@ -101,7 +108,18 @@ class PreferencesIn(APIModel):
         return seen
 
 
-class PreferencesOut(PreferencesIn):
+class PreferencesOut(APIModel):
+    interests: list[str]
+    exclusions: list[str]
+    excluded_creators: list[str]
+    languages: list[str]
+    platforms: list[str]
+    per_platform_limit: int
+    total_budget_minutes: int
+    consent_saved_signals: bool
+    consent_feedback_learning: bool
+    text_model: str | None
+    embedding_model: str | None
     version: int
     updated_at: datetime
 
@@ -195,7 +213,9 @@ class HeartbeatOut(APIModel):
 
 
 class ClaimRequest(APIModel):
-    platforms: list[Literal["youtube", "instagram", "tiktok", "x", "linkedin", "demo"]] = Field(min_length=1, max_length=6)
+    platforms: list[Literal["youtube", "instagram", "tiktok", "x", "linkedin", "demo"]] = Field(
+        min_length=1, max_length=6
+    )
 
 
 class LeaseRenewIn(APIModel):
@@ -414,14 +434,24 @@ class FeedbackOut(APIModel):
 class ScheduleIn(APIModel):
     timezone: Annotated[str, Field(min_length=1, max_length=64)] = "UTC"
     local_time: Annotated[str, Field(pattern=r"^([01]\d|2[0-3]):[0-5]\d$")] = "08:00"
-    days_of_week: list[Annotated[int, Field(ge=0, le=6)]] = Field(default_factory=lambda: [0, 1, 2, 3, 4, 5, 6], max_length=7)
-    platforms: list[Literal["youtube", "instagram", "tiktok", "x", "linkedin", "demo"]] = Field(default_factory=list, max_length=6)
+    days_of_week: list[Annotated[int, Field(ge=0, le=6)]] = Field(
+        default_factory=lambda: [0, 1, 2, 3, 4, 5, 6], max_length=7
+    )
+    platforms: list[Literal["youtube", "instagram", "tiktok", "x", "linkedin", "demo"]] = Field(
+        default_factory=list, max_length=6
+    )
     enabled: bool = True
     missed_run_policy: Literal["run_once", "skip"] = "run_once"
 
 
-class ScheduleOut(ScheduleIn):
+class ScheduleOut(APIModel):
     id: uuid.UUID
+    timezone: str
+    local_time: str
+    days_of_week: list[int]
+    platforms: list[str]
+    enabled: bool
+    missed_run_policy: str
     next_run_at: datetime | None
     last_run_at: datetime | None
     last_job_id: uuid.UUID | None

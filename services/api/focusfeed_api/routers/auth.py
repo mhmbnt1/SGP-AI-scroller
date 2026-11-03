@@ -22,12 +22,18 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 def user_out(u: User) -> UserOut:
     return UserOut(
-        id=u.id, email=u.email, display_name=u.display_name, is_admin=u.is_admin,
-        onboarding_completed=u.onboarding_completed_at is not None, created_at=u.created_at,
+        id=u.id,
+        email=u.email,
+        display_name=u.display_name,
+        is_admin=u.is_admin,
+        onboarding_completed=u.onboarding_completed_at is not None,
+        created_at=u.created_at,
     )
 
 
-def _issue_session(db, user: User, client: str, request: Request, response: Response, settings) -> AuthResponse:
+def _issue_session(
+    db, user: User, client: str, request: Request, response: Response, settings
+) -> AuthResponse:
     token = generate_token(32)
     now = datetime.now(UTC)
     sess = AuthSession(
@@ -43,19 +49,33 @@ def _issue_session(db, user: User, client: str, request: Request, response: Resp
     if client == "web":
         max_age = settings.ff_session_ttl_hours * 3600
         response.set_cookie(
-            settings.ff_cookie_name, token, max_age=max_age, httponly=True, secure=settings.ff_cookie_secure,
-            samesite="lax", path="/",
+            settings.ff_cookie_name,
+            token,
+            max_age=max_age,
+            httponly=True,
+            secure=settings.ff_cookie_secure,
+            samesite="lax",
+            path="/",
         )
         response.set_cookie(
-            settings.ff_csrf_cookie_name, csrf, max_age=max_age, httponly=False, secure=settings.ff_cookie_secure,
-            samesite="lax", path="/",
+            settings.ff_csrf_cookie_name,
+            csrf,
+            max_age=max_age,
+            httponly=False,
+            secure=settings.ff_cookie_secure,
+            samesite="lax",
+            path="/",
         )
-        return AuthResponse(user=user_out(user), csrf_token=csrf, access_token=None, expires_at=sess.expires_at)
+        return AuthResponse(
+            user=user_out(user), csrf_token=csrf, access_token=None, expires_at=sess.expires_at
+        )
     return AuthResponse(user=user_out(user), csrf_token=None, access_token=token, expires_at=sess.expires_at)
 
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
-def register(body: RegisterRequest, request: Request, response: Response, db: DB, settings: AppSettings) -> AuthResponse:
+def register(
+    body: RegisterRequest, request: Request, response: Response, db: DB, settings: AppSettings
+) -> AuthResponse:
     if not limiter.check("register", audit.ip_hash(request), settings.ff_rate_limit_login_per_minute):
         raise RateLimited()
     problem = validate_password_policy(body.password)
@@ -64,7 +84,9 @@ def register(body: RegisterRequest, request: Request, response: Response, db: DB
     email = body.email.lower()
     if db.scalar(select(User.id).where(User.email == email)) is not None:
         raise Conflict("An account with this email already exists.", code="email_taken")
-    user = User(email=email, password_hash=hash_password(body.password), display_name=body.display_name.strip())
+    user = User(
+        email=email, password_hash=hash_password(body.password), display_name=body.display_name.strip()
+    )
     db.add(user)
     db.flush()
     out = _issue_session(db, user, body.client, request, response, settings)
@@ -74,7 +96,9 @@ def register(body: RegisterRequest, request: Request, response: Response, db: DB
 
 
 @router.post("/login", response_model=AuthResponse)
-def login(body: LoginRequest, request: Request, response: Response, db: DB, settings: AppSettings) -> AuthResponse:
+def login(
+    body: LoginRequest, request: Request, response: Response, db: DB, settings: AppSettings
+) -> AuthResponse:
     email = body.email.lower()
     key = f"{audit.ip_hash(request)}:{hash_token(email)[:16]}"
     if not limiter.check("login", key, settings.ff_rate_limit_login_per_minute):
@@ -91,7 +115,9 @@ def login(body: LoginRequest, request: Request, response: Response, db: DB, sett
 
 
 @router.post("/logout", response_model=OkOut)
-def logout(principal: CurrentPrincipal, request: Request, response: Response, db: DB, settings: AppSettings) -> OkOut:
+def logout(
+    principal: CurrentPrincipal, request: Request, response: Response, db: DB, settings: AppSettings
+) -> OkOut:
     principal.session.revoked_at = datetime.now(UTC)
     audit.record(db, "auth.logout", user_id=principal.user.id, request=request)
     db.commit()
@@ -105,13 +131,22 @@ def list_sessions(principal: CurrentPrincipal, db: DB) -> list[SessionOut]:
     now = datetime.now(UTC)
     rows = db.scalars(
         select(AuthSession)
-        .where(AuthSession.user_id == principal.user.id, AuthSession.revoked_at.is_(None), AuthSession.expires_at > now)
+        .where(
+            AuthSession.user_id == principal.user.id,
+            AuthSession.revoked_at.is_(None),
+            AuthSession.expires_at > now,
+        )
         .order_by(AuthSession.created_at.desc())
     ).all()
     return [
         SessionOut(
-            id=s.id, client_kind=s.client_kind, user_agent=s.user_agent, created_at=s.created_at,
-            last_seen_at=s.last_seen_at, expires_at=s.expires_at, current=(s.id == principal.session.id),
+            id=s.id,
+            client_kind=s.client_kind,
+            user_agent=s.user_agent,
+            created_at=s.created_at,
+            last_seen_at=s.last_seen_at,
+            expires_at=s.expires_at,
+            current=(s.id == principal.session.id),
         )
         for s in rows
     ]

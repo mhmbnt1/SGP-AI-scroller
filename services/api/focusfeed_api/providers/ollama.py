@@ -52,7 +52,9 @@ class OllamaProvider:
                 resp.raise_for_status()
                 data = resp.json()
         except httpx.HTTPError as exc:
-            return ProviderHealth(healthy=False, detail=f"Ollama not reachable at {self.base_url}: {type(exc).__name__}")
+            return ProviderHealth(
+                healthy=False, detail=f"Ollama not reachable at {self.base_url}: {type(exc).__name__}"
+            )
         models: list[ModelInfo] = []
         for m in data.get("models", []):
             name = m.get("name") or m.get("model")
@@ -143,8 +145,12 @@ class OllamaProvider:
         if not isinstance(parsed, dict):
             raise InvalidOutput("model output was not a JSON object")
         return GenerationResult(
-            parsed=parsed, raw_text=text, input_tokens=body.get("prompt_eval_count"),
-            output_tokens=body.get("eval_count"), latency_ms=latency, model=model,
+            parsed=parsed,
+            raw_text=text,
+            input_tokens=body.get("prompt_eval_count"),
+            output_tokens=body.get("eval_count"),
+            latency_ms=latency,
+            model=model,
         )
 
     def embed(self, *, model: str, texts: list[str], timeout_seconds: float) -> list[list[float]]:
@@ -172,7 +178,9 @@ class OllamaProvider:
             raise ProviderUnavailable(f"model '{model}' does not support images")
         payload = {
             "model": model,
-            "messages": [{"role": "user", "content": prompt, "images": [base64.b64encode(image_bytes).decode()]}],
+            "messages": [
+                {"role": "user", "content": prompt, "images": [base64.b64encode(image_bytes).decode()]}
+            ],
             "stream": False,
             "options": {"temperature": 0, "num_predict": 200},
         }

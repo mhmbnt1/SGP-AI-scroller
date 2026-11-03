@@ -21,10 +21,22 @@ router = APIRouter(tags=["jobs"])
 
 def job_out(j: CollectionJob) -> JobOut:
     return JobOut(
-        id=j.id, mode=j.mode, query=j.query, platforms=list(j.platforms or []), state=j.state, platform_states=j.platform_states or {},
-        source=j.source, attempts=j.attempts, stop_reason=j.stop_reason, cancel_requested=j.cancel_requested_at is not None,
-        created_at=j.created_at, started_at=j.started_at, finished_at=j.finished_at, batch_id=j.batch_id,
-        progress=jobsvc.PROGRESS.get(j.state, 0), next_step=jobsvc.NEXT_STEP.get(j.state, ""),
+        id=j.id,
+        mode=j.mode,
+        query=j.query,
+        platforms=list(j.platforms or []),
+        state=j.state,
+        platform_states=j.platform_states or {},
+        source=j.source,
+        attempts=j.attempts,
+        stop_reason=j.stop_reason,
+        cancel_requested=j.cancel_requested_at is not None,
+        created_at=j.created_at,
+        started_at=j.started_at,
+        finished_at=j.finished_at,
+        batch_id=j.batch_id,
+        progress=jobsvc.PROGRESS.get(j.state, 0),
+        next_step=jobsvc.NEXT_STEP.get(j.state, ""),
     )
 
 
@@ -43,37 +55,70 @@ def decode_cursor(cursor: str | None) -> tuple[datetime, uuid.UUID] | None:
 
 
 @router.post("/jobs", response_model=JobAccepted, status_code=status.HTTP_202_ACCEPTED)
-def create_job(body: JobCreate, user: CurrentUser, db: DB, settings: AppSettings, request: Request) -> JobAccepted:
+def create_job(
+    body: JobCreate, user: CurrentUser, db: DB, settings: AppSettings, request: Request
+) -> JobAccepted:
     if not limiter.check("jobs_create", str(user.id), settings.ff_rate_limit_jobs_per_minute):
         raise RateLimited("Too many jobs started. Please wait a minute.")
     job, created = jobsvc.create_job(
-        db, user, mode=body.mode, query=body.query, platforms=body.platforms, budget=body.budget, idempotency_key=body.idempotency_key,
+        db,
+        user,
+        mode=body.mode,
+        query=body.query,
+        platforms=[str(p) for p in body.platforms] if body.platforms else None,
+        budget=body.budget,
+        idempotency_key=body.idempotency_key,
     )
     if created:
-        audit.record(db, "job.created", user_id=user.id, request=request, data={"job_id": str(job.id), "mode": body.mode})
+        audit.record(
+            db,
+            "job.created",
+            user_id=user.id,
+            request=request,
+            data={"job_id": str(job.id), "mode": body.mode},
+        )
     db.commit()
     return JobAccepted(job_id=job.id, state=job.state, created=created, poll_url=f"/api/v1/jobs/{job.id}")
 
 
 @router.get("/jobs", response_model=JobListOut)
-def list_jobs(user: CurrentUser, db: DB, cursor: str | None = None, limit: int = Query(default=20, ge=1, le=100)) -> JobListOut:
+def list_jobs(
+    user: CurrentUser, db: DB, cursor: str | None = None, limit: int = Query(default=20, ge=1, le=100)
+) -> JobListOut:
     stmt = select(CollectionJob).where(CollectionJob.user_id == user.id)
     c = decode_cursor(cursor)
     if c is not None:
-        stmt = stmt.where((CollectionJob.created_at < c[0]) | ((CollectionJob.created_at == c[0]) & (CollectionJob.id < c[1])))
-    rows = db.scalars(stmt.order_by(CollectionJob.created_at.desc(), CollectionJob.id.desc()).limit(limit + 1)).all()
+        stmt = stmt.where(
+            (CollectionJob.created_at < c[0])
+            | ((CollectionJob.created_at == c[0]) & (CollectionJob.id < c[1]))
+        )
+    rows = db.scalars(
+        stmt.order_by(CollectionJob.created_at.desc(), CollectionJob.id.desc()).limit(limit + 1)
+    ).all()
     next_cursor = encode_cursor(rows[limit - 1].created_at, rows[limit - 1].id) if len(rows) > limit else None
     return JobListOut(items=[job_out(j) for j in rows[:limit]], next_cursor=next_cursor)
 
 
 @router.get("/jobs/{job_id}", response_model=JobDetailOut)
-def get_job(job_id: uuid.UUID, user: CurrentUser, db: DB, since_seq: int = Query(default=0, ge=0)) -> JobDetailOut:
+def get_job(
+    job_id: uuid.UUID, user: CurrentUser, db: DB, since_seq: int = Query(default=0, ge=0)
+) -> JobDetailOut:
     job = jobsvc.get_owned_job(db, user.id, job_id)
     events = db.scalars(
-        select(JobEvent).where(JobEvent.job_id == job.id, JobEvent.user_id == user.id, JobEvent.seq > since_seq).order_by(JobEvent.seq).limit(200)
+        select(JobEvent)
+        .where(JobEvent.job_id == job.id, JobEvent.user_id == user.id, JobEvent.seq > since_seq)
+        .order_by(JobEvent.seq)
+        .limit(200)
     ).all()
     base = job_out(job)
-    return JobDetailOut(**base.model_dump(), events=[JobEventOut(seq=e.seq, kind=e.kind, message=e.message, data=e.data, created_at=e.created_at) for e in events], budget=job.budget or {})
+    return JobDetailOut(
+        **base.model_dump(),
+        events=[
+            JobEventOut(seq=e.seq, kind=e.kind, message=e.message, data=e.data, created_at=e.created_at)
+            for e in events
+        ],
+        budget=job.budget or {},
+    )
 
 
 @router.post("/jobs/{job_id}/cancel", response_model=JobOut)

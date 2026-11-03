@@ -67,8 +67,13 @@ def run_pipeline(
     stats = None
     if provider is not None:
         stats = enrich_candidates(
-            to_enrich, provider=provider, model=text_model, cfg=cfg, timeout_seconds=timeout_seconds,
-            cancel=cancel, record_run=record_run,
+            to_enrich,
+            provider=provider,
+            model=text_model,
+            cfg=cfg,
+            timeout_seconds=timeout_seconds,
+            cancel=cancel,
+            record_run=record_run,
         )
     for c in unique:
         if c not in to_enrich or provider is None:
@@ -93,7 +98,10 @@ def run_pipeline(
     if stats is not None:
         model_calls = stats.model_calls
         model_outcomes = {
-            "ok": stats.ok, "invalid": stats.invalid, "unavailable": stats.unavailable, "timeout": stats.timeout,
+            "ok": stats.ok,
+            "invalid": stats.invalid,
+            "unavailable": stats.unavailable,
+            "timeout": stats.timeout,
             "fallback": stats.fallback,
         }
         if stats.unavailable:
@@ -104,7 +112,11 @@ def run_pipeline(
     summary["candidates_total"] = len(cands)
     summary["selected_total"] = len(selected)
     return PipelineOutcome(
-        selected=selected, excluded=excluded, model_calls=model_calls, model_outcomes=model_outcomes, notes=notes,
+        selected=selected,
+        excluded=excluded,
+        model_calls=model_calls,
+        model_outcomes=model_outcomes,
+        notes=notes,
         summary=summary,
     )
 

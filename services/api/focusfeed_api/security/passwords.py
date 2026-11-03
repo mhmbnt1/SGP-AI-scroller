@@ -7,7 +7,9 @@ from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatc
 
 # Parameters follow the OWASP Password Storage Cheat Sheet minimums for Argon2id
 # (m=19 MiB, t=2, p=1). They are deliberately modest so a Windows dev box stays responsive.
-_hasher = PasswordHasher(time_cost=2, memory_cost=19 * 1024, parallelism=1, hash_len=32, salt_len=16, type=Type.ID)
+_hasher = PasswordHasher(
+    time_cost=2, memory_cost=19 * 1024, parallelism=1, hash_len=32, salt_len=16, type=Type.ID
+)
 
 MIN_PASSWORD_LENGTH = 10
 MAX_PASSWORD_LENGTH = 256

@@ -14,8 +14,15 @@ class AppError(Exception):
     status_code = 400
     code = "bad_request"
 
-    def __init__(self, message: str = "", *, code: str | None = None, status_code: int | None = None,
-                 details: Any | None = None, retryable: bool = False) -> None:
+    def __init__(
+        self,
+        message: str = "",
+        *,
+        code: str | None = None,
+        status_code: int | None = None,
+        details: Any | None = None,
+        retryable: bool = False,
+    ) -> None:
         super().__init__(message)
         self.message = message or self.__class__.__doc__ or "Request failed"
         if code:
@@ -94,16 +101,24 @@ def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(RequestValidationError)
     async def _validation(request: Request, exc: RequestValidationError) -> JSONResponse:
         details = [
-            {"loc": [str(p) for p in e.get("loc", [])], "msg": str(e.get("msg", "")), "type": str(e.get("type", ""))}
+            {
+                "loc": [str(p) for p in e.get("loc", [])],
+                "msg": str(e.get("msg", "")),
+                "type": str(e.get("type", "")),
+            }
             for e in exc.errors()[:20]
         ]
         return _envelope(request, "validation_error", "Request validation failed.", 422, details)
 
     @app.exception_handler(StarletteHTTPException)
     async def _http(request: Request, exc: StarletteHTTPException) -> JSONResponse:
-        code = {401: "unauthorized", 403: "forbidden", 404: "not_found", 405: "method_not_allowed", 429: "rate_limited"}.get(
-            exc.status_code, "http_error"
-        )
+        code = {
+            401: "unauthorized",
+            403: "forbidden",
+            404: "not_found",
+            405: "method_not_allowed",
+            429: "rate_limited",
+        }.get(exc.status_code, "http_error")
         message = exc.detail if isinstance(exc.detail, str) else "Request failed."
         return _envelope(request, code, message, exc.status_code)
 

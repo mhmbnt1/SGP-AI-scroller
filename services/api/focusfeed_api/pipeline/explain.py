@@ -24,14 +24,20 @@ def explain(c: Candidate, ctx: UserContext, intent: Intent | None) -> str:
     parts: list[str] = []
     comps = c.components
     if intent is not None and intent.query:
-        matched = [k for k in intent.keywords if k.lower() in {t.lower() for t in c.topics} or contains_term(c.text, k)]
+        matched = [
+            k
+            for k in intent.keywords
+            if k.lower() in {t.lower() for t in c.topics} or contains_term(c.text, k)
+        ]
         if matched:
             parts.append("Matches your request: " + ", ".join(matched[:4]) + ".")
         elif comps.get("intent_relevance", 0) > 0.2:
             parts.append("Semantically related to your request.")
         else:
             parts.append("Weak match to your request; kept because few candidates were available.")
-    interests = [i for i in ctx.interests if i.lower() in {t.lower() for t in c.topics} or contains_term(c.text, i)]
+    interests = [
+        i for i in ctx.interests if i.lower() in {t.lower() for t in c.topics} or contains_term(c.text, i)
+    ]
     if interests:
         parts.append("Matches your interests: " + ", ".join(interests[:3]) + ".")
     fb = comps.get("feedback_signal", 0.5)

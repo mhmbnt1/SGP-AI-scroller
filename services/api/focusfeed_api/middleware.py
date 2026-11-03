@@ -19,7 +19,9 @@ CSP = (
 
 
 class RequestContextMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         incoming = request.headers.get("x-request-id", "")
         request_id = incoming if 0 < len(incoming) <= 64 and incoming.isalnum() else uuid.uuid4().hex
         request.state.request_id = request_id

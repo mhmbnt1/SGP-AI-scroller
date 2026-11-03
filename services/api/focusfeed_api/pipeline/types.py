@@ -37,7 +37,7 @@ class Candidate:
 
 @dataclass
 class UserContext:
-    user_id: uuid.UUID
+    user_id: uuid.UUID | None
     interests: list[str]
     exclusions: list[str]
     excluded_creators: list[str]

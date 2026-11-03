@@ -30,7 +30,10 @@ def _nvidia_smi() -> tuple[str | None, int | None, int | None]:
     try:
         out = subprocess.run(  # noqa: S603
             [exe, "--query-gpu=name,memory.total,memory.used", "--format=csv,noheader,nounits"],
-            capture_output=True, text=True, timeout=5, check=False,
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
         )
     except (subprocess.SubprocessError, OSError):
         return None, None, None
@@ -57,10 +60,15 @@ def _ram_total_mb() -> int | None:
 
         class MEMORYSTATUSEX(ctypes.Structure):
             _fields_ = [
-                ("dwLength", ctypes.c_ulong), ("dwMemoryLoad", ctypes.c_ulong), ("ullTotalPhys", ctypes.c_ulonglong),
-                ("ullAvailPhys", ctypes.c_ulonglong), ("ullTotalPageFile", ctypes.c_ulonglong),
-                ("ullAvailPageFile", ctypes.c_ulonglong), ("ullTotalVirtual", ctypes.c_ulonglong),
-                ("ullAvailVirtual", ctypes.c_ulonglong), ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
+                ("dwLength", ctypes.c_ulong),
+                ("dwMemoryLoad", ctypes.c_ulong),
+                ("ullTotalPhys", ctypes.c_ulonglong),
+                ("ullAvailPhys", ctypes.c_ulonglong),
+                ("ullTotalPageFile", ctypes.c_ulonglong),
+                ("ullAvailPageFile", ctypes.c_ulonglong),
+                ("ullTotalVirtual", ctypes.c_ulonglong),
+                ("ullAvailVirtual", ctypes.c_ulonglong),
+                ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
             ]
 
         stat = MEMORYSTATUSEX()

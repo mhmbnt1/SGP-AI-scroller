@@ -21,7 +21,9 @@ def validate_timezone(name: str) -> ZoneInfo:
         raise ValidationFailed(f"Unknown timezone: {name}", code="invalid_timezone") from exc
 
 
-def compute_next_run(local_time: str, days_of_week: list[int], tz_name: str, after: datetime) -> datetime | None:
+def compute_next_run(
+    local_time: str, days_of_week: list[int], tz_name: str, after: datetime
+) -> datetime | None:
     """Next occurrence (UTC) of ``local_time`` on an allowed weekday strictly after ``after``.
 
     DST: the wall-clock time is resolved per day with zoneinfo; a non-existent
@@ -53,7 +55,11 @@ def upsert_schedule(db: Session, user: User, body, existing: Schedule | None = N
     sched.platforms = list(dict.fromkeys(body.platforms))
     sched.enabled = body.enabled
     sched.missed_run_policy = body.missed_run_policy
-    sched.next_run_at = compute_next_run(sched.local_time, sched.days_of_week, sched.timezone, datetime.now(UTC)) if sched.enabled else None
+    sched.next_run_at = (
+        compute_next_run(sched.local_time, sched.days_of_week, sched.timezone, datetime.now(UTC))
+        if sched.enabled
+        else None
+    )
     if existing is None:
         db.add(sched)
     db.flush()
@@ -65,7 +71,8 @@ def run_due_schedules(db: Session, now: datetime | None = None) -> list[uuid.UUI
     now = now or datetime.now(UTC)
     created: list[uuid.UUID] = []
     due = db.scalars(
-        select(Schedule).where(Schedule.enabled.is_(True), Schedule.next_run_at.is_not(None), Schedule.next_run_at <= now)
+        select(Schedule)
+        .where(Schedule.enabled.is_(True), Schedule.next_run_at.is_not(None), Schedule.next_run_at <= now)
         .with_for_update(skip_locked=True)
     ).all()
     for sched in due:
@@ -79,14 +86,23 @@ def run_due_schedules(db: Session, now: datetime | None = None) -> list[uuid.UUI
         if missed_by > timedelta(hours=23) and sched.missed_run_policy == "skip":
             should_run = False
         overlapping = db.scalar(
-            select(CollectionJob.id).where(CollectionJob.schedule_id == sched.id, CollectionJob.state.in_(jobsvc.ACTIVE))
+            select(CollectionJob.id).where(
+                CollectionJob.schedule_id == sched.id, CollectionJob.state.in_(jobsvc.ACTIVE)
+            )
         )
         if should_run and overlapping is None:
             key = f"schedule:{sched.id}:{sched.next_run_at.isoformat()}"
             try:
                 job, was_created = jobsvc.create_job(
-                    db, user, mode="daily", query=None, platforms=list(sched.platforms) or None, budget=None,
-                    idempotency_key=key, source="schedule", schedule_id=sched.id,
+                    db,
+                    user,
+                    mode="daily",
+                    query=None,
+                    platforms=list(sched.platforms) or None,
+                    budget=None,
+                    idempotency_key=key,
+                    source="schedule",
+                    schedule_id=sched.id,
                 )
                 if was_created:
                     created.append(job.id)

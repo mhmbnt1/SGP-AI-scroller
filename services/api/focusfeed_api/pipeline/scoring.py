@@ -75,7 +75,9 @@ def _feedback(c: Candidate, ctx: UserContext) -> float:
     return max(0.0, min(1.0, 0.5 + 0.5 * (pos - neg) / float(pos + neg)))
 
 
-def score_candidates(cands: list[Candidate], ctx: UserContext, intent: Intent | None, cfg: PipelineConfig) -> None:
+def score_candidates(
+    cands: list[Candidate], ctx: UserContext, intent: Intent | None, cfg: PipelineConfig
+) -> None:
     w = cfg.weights
     for c in cands:
         if c.exclusion_reason:
