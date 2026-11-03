@@ -175,32 +175,45 @@ def _run_case(case: dict[str, Any], *, enhanced: bool, split: str, k: int = 5) -
 
 def run_evaluation() -> dict[str, Any]:
     per_query = []
-    for case in CASES:
-        for enhanced in (False, True):
-            per_query.append(_run_case(case, enhanced=enhanced, split="held_out"))
+    for split in ("held_out", "all"):
+        for case in CASES:
+            for enhanced in (False, True):
+                per_query.append(_run_case(case, enhanced=enhanced, split=split))
 
-    def _agg(variant: str, key: str) -> float:
-        vals = [r[key] for r in per_query if r["variant"] == variant and isinstance(r[key], int | float)]
+    def _agg(split: str, variant: str, key: str) -> float:
+        vals = [
+            r[key]
+            for r in per_query
+            if r["split"] == split and r["variant"] == variant and isinstance(r[key], int | float)
+        ]
         return round(sum(vals) / len(vals), 3) if vals else 0.0
 
-    summary = {}
-    for variant in ("baseline", "enhanced"):
-        summary[variant] = {
-            k: _agg(variant, k)
-            for k in (
-                "precision_at_k",
-                "ndcg_at_k",
-                "creator_diversity",
-                "duplicate_rate",
-                "constraint_violations",
-                "model_calls",
-                "latency_ms",
+    def _summary(split: str) -> dict[str, Any]:
+        out: dict[str, Any] = {}
+        for variant in ("baseline", "enhanced"):
+            out[variant] = {
+                k: _agg(split, variant, k)
+                for k in (
+                    "precision_at_k",
+                    "ndcg_at_k",
+                    "creator_diversity",
+                    "duplicate_rate",
+                    "constraint_violations",
+                    "model_calls",
+                    "latency_ms",
+                )
+            }
+            out[variant]["budget_adherence_rate"] = round(
+                sum(1 for r in per_query if r["split"] == split and r["variant"] == variant and r["budget_adherence"])
+                / len(CASES),
+                3,
             )
-        }
-        summary[variant]["budget_adherence_rate"] = round(
-            sum(1 for r in per_query if r["variant"] == variant and r["budget_adherence"]) / len(CASES), 3
-        )
+        return out
+
+    summary = _summary("held_out")  # primary (reported) numbers
+    summary_all_fixtures = _summary("all")  # secondary: every fixture, no hold-out
     return {
+        "summary_all_fixtures": summary_all_fixtures,
         "generated_at": datetime.now(UTC).isoformat(),
         "dataset": {
             "fixtures_total": len(DEMO_ITEMS),

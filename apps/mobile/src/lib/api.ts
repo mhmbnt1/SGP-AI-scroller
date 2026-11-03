@@ -23,6 +23,8 @@ export const api = createApiClient({
   baseUrl: apiBaseUrl(),
   getAccessToken: getToken,
   onUnauthorized: () => unauthorizedHandler?.(),
+  // Late-bound so runtime polyfills (and test mocks) installed after module load are honoured.
+  fetch: (input, init) => globalThis.fetch(input, init),
 });
 
 export class RequestError extends Error {

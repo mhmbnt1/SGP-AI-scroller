@@ -13,5 +13,7 @@ def test_evaluation_harness_runs_and_reports_both_variants():
         assert s["budget_adherence_rate"] == 1.0
     assert report["summary"]["baseline"]["model_calls"] == 0
     assert report["summary"]["enhanced"]["model_calls"] > 0
-    assert len(report["per_query"]) == 2 * report["dataset"]["cases"]
+    # two variants x two splits (held_out + all) per case
+    assert len(report["per_query"]) == 4 * report["dataset"]["cases"]
+    assert set(report["summary_all_fixtures"]) == {"baseline", "enhanced"}
     assert report["limitations"]
