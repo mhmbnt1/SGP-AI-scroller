@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Node
+node_modules/
+.next/
+out/
+dist/
+.expo/
+*.tsbuildinfo
+.turbo/
+
+# Env / secrets — never commit
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+
+# Collector local state (browser profiles, device credentials)
+.focusfeed/
+services/collector/profiles/
+services/collector/state/
+
+# Reports and local artifacts
+reports/*.json
+reports/*.xml
+!reports/.gitkeep
+playwright-report/
+test-results/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

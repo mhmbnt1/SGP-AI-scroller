@@ -1,0 +1,31 @@
+[project]
+name = "focusfeed-api"
+version = "0.1.0"
+description = "FocusFeed backend API: auth, preferences, jobs, batches, collector protocol, ranking, providers."
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "ff-protocol",
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.34",
+    "pydantic[email]>=2.10,<3",
+    "pydantic-settings>=2.7",
+    "sqlalchemy[asyncio]>=2.0.36,<3",
+    "alembic>=1.14",
+    "psycopg[binary]>=3.2",
+    "argon2-cffi>=23.1",
+    "httpx>=0.28",
+    "python-multipart>=0.0.20",
+    "structlog>=24.4",
+    "pgvector>=0.3.6",
+    "tzdata>=2024.2",
+]
+
+[project.scripts]
+focusfeed-api = "focusfeed_api.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["focusfeed_api"]

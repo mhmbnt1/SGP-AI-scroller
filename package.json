@@ -1,0 +1,20 @@
+{
+  "name": "focusfeed",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "contracts:generate": "pnpm --filter @focusfeed/contracts generate",
+    "web:dev": "pnpm --filter @focusfeed/web dev",
+    "web:build": "pnpm --filter @focusfeed/web build",
+    "web:test": "pnpm --filter @focusfeed/web test",
+    "web:e2e": "pnpm --filter @focusfeed/web e2e",
+    "mobile:start": "pnpm --filter @focusfeed/mobile start",
+    "mobile:test": "pnpm --filter @focusfeed/mobile test",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test"
+  }
+}

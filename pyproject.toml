@@ -1,0 +1,55 @@
+[project]
+name = "focusfeed-workspace"
+version = "0.1.0"
+description = "FocusFeed monorepo workspace root (Python side)"
+requires-python = ">=3.12,<3.14"
+dependencies = []
+
+[tool.uv.workspace]
+members = [
+    "packages/protocol",
+    "services/api",
+    "services/worker",
+    "services/collector",
+]
+
+[tool.uv.sources]
+ff-protocol = { workspace = true }
+focusfeed-api = { workspace = true }
+focusfeed-worker = { workspace = true }
+focusfeed-collector = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.25",
+    "pytest-cov>=6.0",
+    "ruff>=0.11",
+    "mypy>=1.14",
+    "httpx>=0.28",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["apps", "node_modules", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "N", "W"]
+ignore = ["S101", "S311", "B008", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S", "B"]
+"**/alembic/**" = ["I", "E", "F401"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["services/api/tests", "services/worker/tests", "services/collector/tests", "packages/protocol/tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = false
+exclude = ["alembic/", "node_modules/", "apps/"]
