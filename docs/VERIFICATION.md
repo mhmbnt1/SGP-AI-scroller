@@ -24,8 +24,8 @@ run and must be run by the user (Windows PC with Ollama/accounts, Docker, Androi
 | 10 | Web typecheck | `pnpm --filter @focusfeed/web typecheck` | yes | 0 | ok |
 | 11 | Web lint | `pnpm --filter @focusfeed/web lint` | yes | 0 | 0 problems |
 | 12 | Web unit tests | `pnpm --filter @focusfeed/web test` | yes | 0 | vitest: 1 file, 2 tests passed |
-| 13 | Web production build | `pnpm --filter @focusfeed/web build` | yes | 0 | 12 routes compiled (first run before the dev-CSP change; **NEXT_BUILD_RESULT**) |
-| 14 | Web end-to-end (real API in test mode + worker + Next dev server; desktop and Pixel-7 projects) | `scripts/e2e.sh` equivalent: API `uvicorn … --port 8000`, `focusfeed-worker`, `pnpm --filter @focusfeed/web e2e` | yes | E2E_EXIT | **E2E_RESULT** (`reports/web-e2e.json`) |
+| 13 | Web production build | `pnpm --filter @focusfeed/web build` | yes | 0 | 12 routes compiled; re-run 2026-11-04T00:07Z after the dev-only CSP change, exit 0 |
+| 14 | Web end-to-end (real API in test mode + worker + Next dev server; desktop and Pixel-7 projects) | `scripts/e2e.sh` equivalent: API `uvicorn … --port 8000`, `focusfeed-worker`, `pnpm --filter @focusfeed/web e2e` | yes | 0 | **4 passed, 0 failed (37.3 s)** — full journey (register → onboard → demo batch → inspect → save → feedback → refresh → logout) and two-user direct-URL isolation, each on the desktop and Pixel-7 (mobile-width) projects (`reports/web-e2e.json`) |
 | 15 | Mobile typecheck | `pnpm --filter @focusfeed/mobile typecheck` | yes | 0 | ok |
 | 16 | Mobile tests (jest-expo, RNTL, mocked HTTP) | `pnpm --filter @focusfeed/mobile test` | yes | 0 | 2 suites, 5 tests passed |
 | 17 | Mobile native build (Android/iOS) | `npx expo run:android` / `run:ios` / `eas build` | **no** — requires user machine | — | not executed; no emulator or device smoke test; no signed release exists |
