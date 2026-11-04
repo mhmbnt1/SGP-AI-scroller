@@ -17,11 +17,20 @@ export FF_MAIL_MODE="${FF_MAIL_MODE:-capture}"
 # every e2e browser shares one IP: lift the per-IP sign-in/registration limit for the run
 export FF_RATE_LIMIT_LOGIN_PER_MINUTE="${FF_RATE_LIMIT_LOGIN_PER_MINUTE:-1000}"
 uv run focusfeed-api migrate
-# stop the API/worker when Playwright ends, but keep Playwright's exit code (kill 0 would also hit this shell)
-cleanup() { rc=$?; trap "" TERM; kill 0 2>/dev/null; exit "$rc"; }
-trap cleanup EXIT
 (cd services/api && uv run uvicorn focusfeed_api.main:app --port 8000 --log-level warning) &
+API_PID=$!
 FF_WORKER_POLL_SECONDS=0.5 uv run focusfeed-worker &
+WORKER_PID=$!
+# Stop only the API/worker trees when Playwright ends and keep Playwright's exit code
+# (a plain `kill 0` would also terminate a non-interactive parent such as CI).
+killtree() { local c; for c in $(pgrep -P "$1"); do killtree "$c"; done; kill -TERM "$1" 2>/dev/null; }
+cleanup() {
+  rc=$?
+  killtree "$API_PID"; killtree "$WORKER_PID"
+  wait "$API_PID" "$WORKER_PID" 2>/dev/null
+  exit "$rc"
+}
+trap cleanup EXIT
 sleep 3
 mkdir -p reports
 pnpm --filter @focusfeed/web e2e "$@"
