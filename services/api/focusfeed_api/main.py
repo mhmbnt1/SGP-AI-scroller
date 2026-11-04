@@ -10,8 +10,11 @@ from focusfeed_api.config import Settings, get_settings
 from focusfeed_api.errors import install_error_handlers
 from focusfeed_api.middleware import RequestContextMiddleware, configure_logging
 from focusfeed_api.routers import (
+    admin,
+    ai,
     auth,
     batches,
+    channels,
     collector_jobs,
     collectors,
     health,
@@ -25,6 +28,8 @@ from focusfeed_api.routers import (
     saved,
     schedules,
     search,
+    sources,
+    watches,
 )
 
 
@@ -67,6 +72,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         models.router,
         privacy.router,
         health.router,
+        ai.router,
+        admin.router,
+        sources.router,
+        watches.router,
+        channels.router,
     ):
         v1.include_router(r)
     app.include_router(v1)

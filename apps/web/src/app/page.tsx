@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState, type FormEvent } from "react";
 
@@ -60,7 +61,7 @@ function WelcomeInner() {
         </label>
         {error ? <ErrorBox error={error} title={mode === "login" ? "Sign-in failed" : "Could not create account"} /> : null}
         <button type="submit" className="btn-primary" disabled={busy}>{busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}</button>
-        <small className="muted">Account recovery: this self-hosted build has no email delivery; an administrator resets passwords with <code>focusfeed-api reset-password</code> (documented in docs/DEPLOYMENT.md).</small>
+        <small className="muted"><Link href="/recover">Forgot your password?</Link> Recovery works by emailed code when the operator has enabled mail; otherwise the operator resets it for you.</small>
       </form>
     </div>
   );

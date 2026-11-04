@@ -39,7 +39,8 @@ export function LoginScreen() {
           <Input label="Password" hint={mode === "register" ? "at least 10 characters" : undefined} value={password} onChangeText={setPassword} secureTextEntry autoComplete={mode === "register" ? "new-password" : "password"} textContentType={mode === "register" ? "newPassword" : "password"} onSubmitEditing={() => void submit()} />
           {error ? <ErrorView error={error} /> : null}
           <Button title={mode === "login" ? "Sign in" : "Create account"} variant="primary" loading={busy} disabled={busy || !email || !password} onPress={() => void submit()} />
-          <P muted>Password login with a bearer token stored in the OS keychain/keystore. Account recovery is handled by the administrator (see docs/DEPLOYMENT.md).</P>
+          <Button title="Forgot your password?" variant="ghost" onPress={() => router.push("/recover")} />
+          <P muted>Password login with a bearer token stored in the OS keychain/keystore. Recovery works by emailed code when the operator has enabled mail; otherwise the operator resets it for you.</P>
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>

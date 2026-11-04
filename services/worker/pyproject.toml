@@ -5,6 +5,7 @@ description = "FocusFeed background worker: job orchestration, scheduling, enric
 requires-python = ">=3.12,<3.14"
 dependencies = [
     "focusfeed-api",
+    "focusfeed-collector",
     "ff-protocol",
 ]
 

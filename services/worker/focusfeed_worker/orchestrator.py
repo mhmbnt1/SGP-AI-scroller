@@ -18,7 +18,6 @@ from focusfeed_api.adapters.demo import DemoAdapter
 from focusfeed_api.config import get_settings
 from focusfeed_api.db import session_factory
 from focusfeed_api.models import CollectionJob, EvidenceArtifact, JobEvent, PlatformConnection, User
-from focusfeed_api.providers import get_provider
 from focusfeed_api.providers.base import Cancelled, CancelToken
 from focusfeed_api.services import jobs as jobsvc
 from focusfeed_api.services.batches import build_batch, existing_batch
@@ -123,6 +122,18 @@ def process_job(job_id: uuid.UUID, worker_id: str) -> str:
                 job.lease_expires_at = None
                 db.commit()
         db.refresh(job)
+        if (
+            job.state in (jobsvc.NEEDS_USER_ACTION, jobsvc.FAILED, jobsvc.CANCELLED)
+            and job.channel_link_id is not None
+        ):
+            from focusfeed_api.services.conversation import reply_for_job
+
+            try:
+                reply_for_job(db, job, None, settings=settings)
+                db.commit()
+            except Exception:  # noqa: BLE001
+                db.rollback()
+                log.exception("whatsapp_failure_reply_failed", job_id=str(job.id))
         return job.state
 
 
@@ -137,7 +148,18 @@ def _stage_start(db, job: CollectionJob, settings, cancel: CancelToken) -> None:
         db.commit()
         _collect_in_process(db, job, cancel)
         return
-    # live: hand over to the user's collector
+    # live: hosted (default consumer mode) runs on this always-on worker; local hands over to the user's PC collector
+    from focusfeed_api.models import PreferenceProfile
+
+    pref = db.scalar(select(PreferenceProfile).where(PreferenceProfile.user_id == job.user_id))
+    location = pref.collection_location if pref else "hosted"
+    if location == "hosted" and settings.ff_hosted_collection_enabled:
+        from focusfeed_worker.hosted import collect_hosted
+
+        jobsvc.transition(db, job, jobsvc.COLLECTING, reason="hosted collection on the service")
+        db.commit()
+        collect_hosted(db, job, cancel)
+        return
     states = dict(job.platform_states or {})
     for p in platforms:
         if PLATFORM_MATRIX.get(p, {}).get("status") != "implemented":
@@ -236,12 +258,24 @@ def _stage_rank(db, job: CollectionJob, cancel: CancelToken) -> None:
         db.commit()
         return
     settings = get_settings()
-    provider = get_provider(settings)
+    from focusfeed_api.services.model_routing import route_for_job
+    from focusfeed_api.services.preferences import get_or_create_profile
+
+    owner = db.get(User, job.user_id)
+    assert owner is not None
+    routing = route_for_job(db, owner, get_or_create_profile(db, owner), job.id, settings=settings)
+    provider = routing.provider
+    if routing.note:
+        jobsvc.add_event(db, job, "model_routing", f"no model: {routing.note}")
+    else:
+        jobsvc.add_event(db, job, "model_routing", f"using {routing.label}")
     states = job.platform_states or {}
     incomplete = [p for p, s in states.items() if s not in ("available",)]
     completion = "partial" if incomplete else "completed"
     if existing_batch(db, job) is None:
-        batch, info = build_batch(db, job, provider=provider, cancel=cancel, completion_status=completion)
+        batch, info = build_batch(
+            db, job, provider=provider, cancel=cancel, completion_status=completion, routing=routing
+        )
         jobsvc.add_event(
             db,
             job,
@@ -258,6 +292,15 @@ def _stage_rank(db, job: CollectionJob, cancel: CancelToken) -> None:
         "" if not incomplete else "incomplete platforms: " + ", ".join(f"{p}={states[p]}" for p in incomplete)
     )
     jobsvc.transition(db, job, jobsvc.PARTIAL if incomplete else jobsvc.COMPLETED, reason=reason)
+    # Phase 2 completion hooks: scheduled digest delivery and WhatsApp-originated replies
+    from focusfeed_api.services.conversation import digest_for_schedule, reply_for_job
+
+    final_batch = existing_batch(db, job)
+    if final_batch is not None:
+        if job.schedule_id is not None:
+            digest_for_schedule(db, job, final_batch, settings=settings)
+        if job.channel_link_id is not None:
+            reply_for_job(db, job, final_batch, settings=settings)
     db.commit()
 
 
@@ -320,6 +363,42 @@ def tick(worker_id: str) -> dict[str, int]:
         stats["schedules"] = len(run_due_schedules(db))
         db.commit()
         stats["expired"] = expire_waiting_jobs(db)
+    # Phase 2: hosted connect sessions, watches, WhatsApp inbox/outbox, stale reservations
+    try:
+        from focusfeed_worker.hosted import run_connect_sessions
+
+        if settings.ff_hosted_collection_enabled:
+            stats["connect_sessions"] = run_connect_sessions()
+    except Exception:  # noqa: BLE001
+        log.exception("connect_sessions_failed")
+    with session_factory()() as db:
+        from focusfeed_api.services import usage as usagesvc
+        from focusfeed_api.services.conversation import enqueue_watch_alerts, process_inbox
+        from focusfeed_api.services.outbox import dispatch_due
+        from focusfeed_api.services.watches import poll_due_watches
+
+        try:
+            stats["watches"] = len(poll_due_watches(db))
+            stats["alerts"] = enqueue_watch_alerts(db, settings=settings)
+            db.commit()
+        except Exception:  # noqa: BLE001
+            db.rollback()
+            log.exception("watch_poll_failed")
+        if settings.ff_whatsapp_mode != "disabled":
+            try:
+                from focusfeed_api.channels.whatsapp import get_transport
+
+                inbox = process_inbox(db, settings=settings)
+                db.commit()
+                out = dispatch_due(db, get_transport(settings), settings=settings)
+                db.commit()
+                stats["inbox"] = inbox["messages"] + inbox["statuses"]
+                stats["outbox_sent"] = out["sent"]
+            except Exception:  # noqa: BLE001
+                db.rollback()
+                log.exception("whatsapp_tick_failed")
+        usagesvc.expire_stale_reservations(db)
+        db.commit()
     with session_factory()() as db:
         job = jobsvc.claim_for_worker(db, worker_id, settings.ff_job_lease_seconds)
         job_id = job.id if job else None

@@ -67,3 +67,18 @@ repository. Status legend: ✅ implemented + tested · ◐ implemented, not sepa
 
 Automated evidence is produced by `scripts/test.sh` (JUnit in `reports/pytest.xml`). See
 `docs/VERIFICATION.md` for the exact commands, environment and observed results of the last run.
+
+## Phase 2 controls
+
+| Area | Control | Where | Verified by |
+|---|---|---|---|
+| Secrets (ASVS V6/V8) | AES-256-GCM vault, keys outside DB, versioned + rotation, AAD context binding; keys write-only in every surface; queue carries ids only | `security/secrets.py`, `services/provider_connections.py`, schemas without key fields | `test_vault_roundtrip_context_binding_and_rotation`, `…byok_connection_scoped_masked…`, injection test |
+| Provider abuse / cost | per-user quotas, row-locked reservations, deployment spend guard, no retry on auth/billing/policy errors, circuit breaker, no implicit fallback | `services/usage.py`, `providers/types.py`, `services/model_routing.py` | `test_ai_routing.py`, `test_providers_phase2.py` |
+| Privacy disclosure | external provider usable only after explicit acknowledgement; WhatsApp disclosure separate | `routers/ai.py`, `routers/channels.py` | routing tests, e2e |
+| Hosted browser (ASVS V4/V13) | owner-bound one-use connect token + session auth, cross-user denial, input schema validation, TTL + cancel, bounded frames, per-user 0700 profiles, no remote debugging, no LLM access to frames | `services/hosted.py`, `focusfeed_worker/hosted.py` | `test_sources_matrix_is_honest_and_phone_connect_contract`, mobile Jest, web e2e |
+| Watches (SSRF) | `SafeFetcher` (scheme/host/IP/redirect/size guards) for every feed fetch; https only at input | `security/ssrf.py`, `services/watches.py` | `test_watch_rejects_unsafe_sources`, Phase 1 SSRF suite |
+| Webhooks (ASVS V13) | HMAC-SHA256 over raw body, constant-time compare, verify token, size limit, phone-number-id check, dedup, 404 when disabled | `routers/channels.py`, `channels/whatsapp.py` | `test_webhook_verification_and_signature_rules`, `…disabled_mode…` |
+| Messaging consent | opt-in default off; STOP deterministic before any model call; same flag as app; templates required outside window; max delivery age; no sends from startup/migrations/seed/CI | `services/channel_links.py`, `services/outbox.py`, `services/conversation.py` | `test_link_consent_stop…`, `…outbox_window_template_rules…` |
+| Prompt injection (messages) | message text in user slot only; schema-validated output; model cannot select recipients, trigger sends or read settings | `services/conversation.py` | `…prompt_injection_in_message_cannot_change_recipient_or_reveal_keys` |
+| Account recovery (ASVS V2) | hashed one-use codes, 15-min TTL, 5 attempts, per-IP+email hourly limit, no enumeration, sessions revoked after reset, codes never logged | `routers/auth.py`, `services/mail.py`, `PasswordResetCode` | `test_account_recovery_by_email_code`, `…unavailable_without_mail` |
+| Admin separation | operator keys/entitlements/templates behind `is_admin`; consumers get 403 | `routers/admin.py` | `test_consumer_cannot_access_admin_provider_settings` |

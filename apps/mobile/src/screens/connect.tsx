@@ -10,11 +10,12 @@ export function ConnectScreen() {
   return (
     <Screen>
       <ScrollView contentContainerStyle={{ padding: space[4], gap: space[3] }}>
-        <H1>Connect your feeds</H1>
+        <H1>Local collector (optional)</H1>
+        <Notice kind="info">The standard way is hosted collection: Settings → Manage sources → Connect, entirely from this phone. The steps below are only for the optional local-PC collector.</Notice>
         {me?.mode !== "live" ? <Notice kind="info">This server runs in {me?.mode} mode: batches use labelled synthetic content and no collector is needed.</Notice> : null}
         <Card>
-          <Text style={{ color: c.text, fontWeight: "700" }}>Why this happens on your PC</Text>
-          <P>Your personalized feeds only exist behind your own login. A small collector program on your Windows PC opens a dedicated browser profile, you sign in yourself, and it scrolls a bounded number of items on your schedule. Cookies stay on that PC. Phones cannot run a persistent background browser agent, so this app only consumes results.</P>
+          <Text style={{ color: c.text, fontWeight: "700" }}>When to use it</Text>
+          <P>If you prefer your platform sessions to stay on your own Windows PC instead of the service, a small collector program opens a dedicated browser profile there, you sign in yourself, and it scrolls a bounded number of items on your schedule. It must be running for scheduled digests.</P>
         </Card>
         <Card>
           <Text style={{ color: c.text, fontWeight: "700" }}>Steps (on the PC)</Text>

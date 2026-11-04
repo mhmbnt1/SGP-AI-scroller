@@ -208,6 +208,68 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_wa_simulate(args: argparse.Namespace) -> int:
+    """Post a signed, synthetic WhatsApp webhook to a running API (development only; no real message).
+
+    Uses the same payload shape as Meta's Cloud API for a text message or a delivery status, signed with
+    WA_APP_SECRET exactly as Meta would. Nothing is sent to WhatsApp; this exercises the inbox/outbox code.
+    """
+    import os
+    import time
+
+    import httpx
+
+    from focusfeed_api.channels import whatsapp as wa
+
+    secret = args.app_secret or os.environ.get("WA_APP_SECRET", "")
+    pnid = args.phone_number_id or os.environ.get("WA_PHONE_NUMBER_ID", "")
+    if not secret or not pnid:
+        print("WA_APP_SECRET and WA_PHONE_NUMBER_ID are required (env or flags)")
+        return 2
+    msg_id = args.msg_id or f"wamid.sim.{int(time.time() * 1000)}"
+    if args.status:
+        body = json.dumps(
+            {
+                "object": "whatsapp_business_account",
+                "entry": [
+                    {
+                        "id": "WABA",
+                        "changes": [
+                            {
+                                "field": "messages",
+                                "value": {
+                                    "messaging_product": "whatsapp",
+                                    "metadata": {
+                                        "display_phone_number": "15550000000",
+                                        "phone_number_id": pnid,
+                                    },
+                                    "statuses": [
+                                        {
+                                            "id": args.status_for,
+                                            "status": args.status,
+                                            "timestamp": str(int(time.time())),
+                                            "recipient_id": args.sender,
+                                        }
+                                    ],
+                                },
+                            }
+                        ],
+                    }
+                ],
+            }
+        ).encode()
+    else:
+        body = wa.minimal_payload_for_tests(pnid, args.sender, args.text, msg_id)
+    r = httpx.post(
+        f"{args.api_base.rstrip('/')}/api/v1/webhooks/whatsapp",
+        content=body,
+        headers={"Content-Type": "application/json", "X-Hub-Signature-256": wa.sign(body, secret)},
+        timeout=10,
+    )
+    print(r.status_code, r.text[:300])
+    return 0 if r.status_code < 300 else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="focusfeed-api")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -229,6 +291,16 @@ def main(argv: list[str] | None = None) -> int:
     s = sub.add_parser("evaluate")
     s.add_argument("--out", default=str(API_DIR.parents[1] / "reports" / "evaluation.json"))
     s.set_defaults(fn=cmd_evaluate)
+    s = sub.add_parser("wa-simulate", help="post a signed synthetic WhatsApp webhook to a running API")
+    s.add_argument("--api-base", default="http://127.0.0.1:8000")
+    s.add_argument("--sender", default="15551230001", help="wa_id of the simulated user (digits)")
+    s.add_argument("--text", default="HELP")
+    s.add_argument("--msg-id", default="")
+    s.add_argument("--status", default="", help="simulate a status event instead: sent|delivered|read|failed")
+    s.add_argument("--status-for", default="", help="provider message id the status refers to")
+    s.add_argument("--app-secret", default="")
+    s.add_argument("--phone-number-id", default="")
+    s.set_defaults(fn=cmd_wa_simulate)
     args = p.parse_args(argv)
     return int(args.fn(args))
 

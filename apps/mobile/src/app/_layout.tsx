@@ -13,6 +13,13 @@ function Root() {
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ title: "Preferences" }} />
       <Stack.Screen name="connect" options={{ title: "Connect" }} />
+      <Stack.Screen name="recover" options={{ title: "Account recovery" }} />
+      <Stack.Screen name="ai" options={{ title: "AI model" }} />
+      <Stack.Screen name="sources" options={{ title: "Sources" }} />
+      <Stack.Screen name="connect-session" options={{ title: "Sign in to source" }} />
+      <Stack.Screen name="schedules" options={{ title: "Schedules" }} />
+      <Stack.Screen name="watches" options={{ title: "Watches" }} />
+      <Stack.Screen name="whatsapp" options={{ title: "WhatsApp" }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="item/[id]" options={{ title: "Item" }} />
     </Stack>

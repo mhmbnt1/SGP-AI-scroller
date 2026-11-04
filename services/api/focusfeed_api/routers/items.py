@@ -16,6 +16,7 @@ from focusfeed_api.models import (
     Recommendation,
     SavedItem,
     UserObservation,
+    WatchDiscovery,
 )
 from focusfeed_api.pipeline.explain import coverage_label
 from focusfeed_api.routers.batches import item_out, rec_out
@@ -25,7 +26,7 @@ router = APIRouter(tags=["items"])
 
 
 def user_can_access_item(db, user_id: uuid.UUID, item_id: uuid.UUID) -> bool:
-    for model in (UserObservation, Recommendation, SavedItem):
+    for model in (UserObservation, Recommendation, SavedItem, WatchDiscovery):
         if (
             db.scalar(select(model.id).where(model.user_id == user_id, model.item_id == item_id).limit(1))
             is not None

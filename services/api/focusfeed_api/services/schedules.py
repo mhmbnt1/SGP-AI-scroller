@@ -50,7 +50,18 @@ def upsert_schedule(db: Session, user: User, body, existing: Schedule | None = N
     validate_timezone(body.timezone)
     sched = existing or Schedule(user_id=user.id)
     sched.timezone = body.timezone
-    sched.local_time = body.local_time
+    ready_by = getattr(body, "ready_by_time", None)
+    lead = int(getattr(body, "lead_minutes", 60) or 60)
+    if ready_by:
+        hh, mm = (int(x) for x in ready_by.split(":"))
+        total = (hh * 60 + mm - lead) % (24 * 60)
+        sched.local_time = f"{total // 60:02d}:{total % 60:02d}"
+        sched.ready_by_time, sched.lead_minutes = ready_by, lead
+    else:
+        sched.local_time = body.local_time
+        sched.ready_by_time, sched.lead_minutes = None, lead
+    sched.deliver_time = getattr(body, "deliver_time", None)
+    sched.deliver_channels = list(getattr(body, "deliver_channels", None) or ["app"])
     sched.days_of_week = sorted(set(body.days_of_week))
     sched.platforms = list(dict.fromkeys(body.platforms))
     sched.enabled = body.enabled

@@ -180,6 +180,36 @@ def delete_account(db: Session, user: User) -> None:
     db.execute(delete(PlatformConnection).where(PlatformConnection.user_id == uid))
     db.execute(delete(CollectorEnrollment).where(CollectorEnrollment.user_id == uid))
     db.execute(delete(CollectorDevice).where(CollectorDevice.user_id == uid))
+    from focusfeed_api.models import (
+        ChannelConversation,
+        ChannelLink,
+        ChannelLinkCode,
+        ConnectSession,
+        DeliveryOutbox,
+        Entitlement,
+        HostedProfile,
+        ProviderConnection,
+        TopicWatch,
+        UsageLedger,
+        WatchDiscovery,
+    )
+    from focusfeed_api.services.hosted import delete_all_profiles_for_user
+
+    delete_all_profiles_for_user(db, uid)
+    for model in (
+        DeliveryOutbox,
+        ChannelConversation,
+        ChannelLinkCode,
+        ChannelLink,
+        ConnectSession,
+        HostedProfile,
+        WatchDiscovery,
+        TopicWatch,
+        ProviderConnection,
+        Entitlement,
+    ):
+        db.execute(delete(model).where(model.user_id == uid))
+    db.execute(delete(UsageLedger).where(UsageLedger.user_id == uid))
     db.execute(delete(PreferenceProfile).where(PreferenceProfile.user_id == uid))
     db.execute(delete(AuthSession).where(AuthSession.user_id == uid))
     # orphaned synthetic/public catalog rows without any observer are removed by retention cleanup

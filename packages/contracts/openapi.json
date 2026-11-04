@@ -1,6 +1,326 @@
 {
   "components": {
     "schemas": {
+      "AdminProvidersOut": {
+        "additionalProperties": false,
+        "properties": {
+          "catalog": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Catalog",
+            "type": "array"
+          },
+          "connections": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderConnectionOut"
+            },
+            "title": "Connections",
+            "type": "array"
+          },
+          "daily_spend_guard_usd": {
+            "title": "Daily Spend Guard Usd",
+            "type": "number"
+          },
+          "deployment_cost_today_usd": {
+            "title": "Deployment Cost Today Usd",
+            "type": "number"
+          },
+          "enabled_providers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Enabled Providers",
+            "type": "array"
+          },
+          "env_keys_present": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Env Keys Present",
+            "type": "object"
+          },
+          "vault_key_version": {
+            "title": "Vault Key Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "enabled_providers",
+          "connections",
+          "env_keys_present",
+          "catalog",
+          "deployment_cost_today_usd",
+          "daily_spend_guard_usd",
+          "vault_key_version"
+        ],
+        "title": "AdminProvidersOut",
+        "type": "object"
+      },
+      "AiOptionsOut": {
+        "additionalProperties": false,
+        "properties": {
+          "byok_enabled": {
+            "title": "Byok Enabled",
+            "type": "boolean"
+          },
+          "disclosure_text": {
+            "title": "Disclosure Text",
+            "type": "string"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderOptionOut"
+            },
+            "title": "Providers",
+            "type": "array"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/AiSelectionOut"
+          }
+        },
+        "required": [
+          "providers",
+          "selection",
+          "byok_enabled",
+          "disclosure_text"
+        ],
+        "title": "AiOptionsOut",
+        "type": "object"
+      },
+      "AiSelectionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge_external_processing": {
+            "default": false,
+            "title": "Acknowledge External Processing",
+            "type": "boolean"
+          },
+          "allow_fallback_to": {
+            "items": {
+              "maxLength": 160,
+              "minLength": 3,
+              "type": "string"
+            },
+            "maxItems": 3,
+            "title": "Allow Fallback To",
+            "type": "array"
+          },
+          "byok_connection_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Byok Connection Id"
+          },
+          "chat_model": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chat Model"
+          },
+          "credential_mode": {
+            "default": "operator",
+            "enum": [
+              "operator",
+              "byok"
+            ],
+            "title": "Credential Mode",
+            "type": "string"
+          },
+          "embedding_model": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding Model"
+          },
+          "provider": {
+            "enum": [
+              "openai",
+              "anthropic",
+              "gemini",
+              "xai",
+              "ollama",
+              "fake"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "summary_model": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Model"
+          },
+          "vision_model": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vision Model"
+          }
+        },
+        "required": [
+          "provider"
+        ],
+        "title": "AiSelectionIn",
+        "type": "object"
+      },
+      "AiSelectionOut": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_fallback_to": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Allow Fallback To",
+            "type": "array"
+          },
+          "availability": {
+            "enum": [
+              "ready",
+              "not_configured",
+              "disclosure_required",
+              "quota_exhausted",
+              "unavailable"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "availability_detail": {
+            "title": "Availability Detail",
+            "type": "string"
+          },
+          "byok_connection_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Byok Connection Id"
+          },
+          "chat_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chat Model"
+          },
+          "credential_mode": {
+            "enum": [
+              "operator",
+              "byok"
+            ],
+            "title": "Credential Mode",
+            "type": "string"
+          },
+          "effective_label": {
+            "title": "Effective Label",
+            "type": "string"
+          },
+          "embedding_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding Model"
+          },
+          "external_disclosure_acknowledged": {
+            "title": "External Disclosure Acknowledged",
+            "type": "boolean"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "summary_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Model"
+          },
+          "vision_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vision Model"
+          }
+        },
+        "required": [
+          "provider",
+          "credential_mode",
+          "chat_model",
+          "summary_model",
+          "vision_model",
+          "embedding_model",
+          "byok_connection_id",
+          "allow_fallback_to",
+          "external_disclosure_acknowledged",
+          "effective_label",
+          "availability",
+          "availability_detail"
+        ],
+        "title": "AiSelectionOut",
+        "type": "object"
+      },
       "AuthResponse": {
         "additionalProperties": false,
         "properties": {
@@ -426,6 +746,24 @@
         "title": "ClaimRequest",
         "type": "object"
       },
+      "CollectionLocationIn": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "enum": [
+              "hosted",
+              "local"
+            ],
+            "title": "Location",
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "title": "CollectionLocationIn",
+        "type": "object"
+      },
       "CollectionMode": {
         "description": "Which capability produced a candidate. Never conflate these.",
         "enum": [
@@ -667,6 +1005,242 @@
         "title": "CollectorResultState",
         "type": "string"
       },
+      "ConnectInputIn": {
+        "additionalProperties": false,
+        "properties": {
+          "dy": {
+            "anyOf": [
+              {
+                "maximum": 2000.0,
+                "minimum": -2000.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dy"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "kind": {
+            "enum": [
+              "tap",
+              "type",
+              "key",
+              "scroll",
+              "back"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "x": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "X"
+          },
+          "y": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Y"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "ConnectInputIn",
+        "type": "object"
+      },
+      "ConnectSessionCreateIn": {
+        "additionalProperties": false,
+        "properties": {
+          "consent": {
+            "default": false,
+            "title": "Consent",
+            "type": "boolean"
+          }
+        },
+        "title": "ConnectSessionCreateIn",
+        "type": "object"
+      },
+      "ConnectSessionOut": {
+        "additionalProperties": false,
+        "properties": {
+          "current_url_host": {
+            "title": "Current Url Host",
+            "type": "string"
+          },
+          "ended_reason": {
+            "title": "Ended Reason",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "frame_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frame At"
+          },
+          "frame_seq": {
+            "title": "Frame Seq",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "pending_inputs": {
+            "title": "Pending Inputs",
+            "type": "integer"
+          },
+          "platform": {
+            "title": "Platform",
+            "type": "string"
+          },
+          "result_status": {
+            "title": "Result Status",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "platform",
+          "state",
+          "expires_at",
+          "frame_seq",
+          "frame_at",
+          "current_url_host",
+          "result_status",
+          "ended_reason",
+          "pending_inputs"
+        ],
+        "title": "ConnectSessionOut",
+        "type": "object"
+      },
+      "ConnectSessionStartOut": {
+        "additionalProperties": false,
+        "properties": {
+          "notice": {
+            "title": "Notice",
+            "type": "string"
+          },
+          "poll_ms": {
+            "title": "Poll Ms",
+            "type": "integer"
+          },
+          "session": {
+            "$ref": "#/components/schemas/ConnectSessionOut"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session",
+          "token",
+          "poll_ms",
+          "notice"
+        ],
+        "title": "ConnectSessionStartOut",
+        "type": "object"
+      },
+      "ConnectionCreateIn": {
+        "additionalProperties": false,
+        "properties": {
+          "api_key": {
+            "maxLength": 512,
+            "minLength": 8,
+            "title": "Api Key",
+            "type": "string"
+          },
+          "enabled_models": {
+            "items": {
+              "maxLength": 120,
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Enabled Models",
+            "type": "array"
+          },
+          "label": {
+            "default": "",
+            "maxLength": 120,
+            "title": "Label",
+            "type": "string"
+          },
+          "provider": {
+            "enum": [
+              "openai",
+              "anthropic",
+              "gemini",
+              "xai"
+            ],
+            "title": "Provider",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider",
+          "api_key"
+        ],
+        "title": "ConnectionCreateIn",
+        "type": "object"
+      },
       "ConnectionOut": {
         "additionalProperties": false,
         "properties": {
@@ -731,6 +1305,82 @@
           "next_step"
         ],
         "title": "ConnectionOut",
+        "type": "object"
+      },
+      "ConnectionTestIn": {
+        "additionalProperties": false,
+        "properties": {
+          "model": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          }
+        },
+        "title": "ConnectionTestIn",
+        "type": "object"
+      },
+      "ConnectionTestOut": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "status",
+          "model"
+        ],
+        "title": "ConnectionTestOut",
         "type": "object"
       },
       "ConnectionUpdate": {
@@ -936,6 +1586,150 @@
           "instructions"
         ],
         "title": "EnrollmentOut",
+        "type": "object"
+      },
+      "EntitlementIn": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_providers": {
+            "items": {
+              "maxLength": 120,
+              "type": "string"
+            },
+            "maxItems": 6,
+            "title": "Allowed Providers",
+            "type": "array"
+          },
+          "daily_call_quota": {
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Daily Call Quota",
+            "type": "integer"
+          },
+          "daily_cost_quota_usd": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Cost Quota Usd"
+          },
+          "daily_message_quota": {
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Daily Message Quota",
+            "type": "integer"
+          },
+          "daily_token_quota": {
+            "maximum": 50000000.0,
+            "minimum": 0.0,
+            "title": "Daily Token Quota",
+            "type": "integer"
+          },
+          "note": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Note",
+            "type": "string"
+          },
+          "trial_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trial Until"
+          }
+        },
+        "required": [
+          "daily_token_quota",
+          "daily_call_quota",
+          "daily_message_quota"
+        ],
+        "title": "EntitlementIn",
+        "type": "object"
+      },
+      "EntitlementOut": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_providers": {
+            "items": {
+              "maxLength": 120,
+              "type": "string"
+            },
+            "maxItems": 6,
+            "title": "Allowed Providers",
+            "type": "array"
+          },
+          "daily_call_quota": {
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Daily Call Quota",
+            "type": "integer"
+          },
+          "daily_cost_quota_usd": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Cost Quota Usd"
+          },
+          "daily_message_quota": {
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Daily Message Quota",
+            "type": "integer"
+          },
+          "daily_token_quota": {
+            "maximum": 50000000.0,
+            "minimum": 0.0,
+            "title": "Daily Token Quota",
+            "type": "integer"
+          },
+          "note": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Note",
+            "type": "string"
+          },
+          "trial_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trial Until"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "daily_token_quota",
+          "daily_call_quota",
+          "daily_message_quota",
+          "user_id"
+        ],
+        "title": "EntitlementOut",
         "type": "object"
       },
       "EvidenceBundle": {
@@ -2322,6 +3116,109 @@
         "title": "ModelsOut",
         "type": "object"
       },
+      "NotificationOut": {
+        "additionalProperties": false,
+        "properties": {
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "body_preview": {
+            "title": "Body Preview",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "last_error": {
+            "title": "Last Error",
+            "type": "string"
+          },
+          "not_before": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Not Before"
+          },
+          "proactive": {
+            "title": "Proactive",
+            "type": "boolean"
+          },
+          "related_batch_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Related Batch Id"
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent At"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "status_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status At"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "proactive",
+          "state",
+          "body_preview",
+          "created_at",
+          "not_before",
+          "sent_at",
+          "status_at",
+          "attempts",
+          "last_error",
+          "related_batch_id"
+        ],
+        "title": "NotificationOut",
+        "type": "object"
+      },
       "OkOut": {
         "additionalProperties": false,
         "properties": {
@@ -2685,6 +3582,126 @@
         "title": "PreferencesOut",
         "type": "object"
       },
+      "ProviderConnectionOut": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "enabled_models": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Enabled Models",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "key_hint": {
+            "title": "Key Hint",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "last_error": {
+            "title": "Last Error",
+            "type": "string"
+          },
+          "last_tested_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Tested At"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "scope",
+          "provider",
+          "display_name",
+          "label",
+          "key_hint",
+          "status",
+          "last_tested_at",
+          "last_error",
+          "enabled_models",
+          "created_at"
+        ],
+        "title": "ProviderConnectionOut",
+        "type": "object"
+      },
+      "ProviderOptionOut": {
+        "additionalProperties": false,
+        "properties": {
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "external": {
+            "title": "External",
+            "type": "boolean"
+          },
+          "help": {
+            "title": "Help",
+            "type": "string"
+          },
+          "models": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider",
+          "display_name",
+          "help",
+          "configured",
+          "external",
+          "models"
+        ],
+        "title": "ProviderOptionOut",
+        "type": "object"
+      },
       "RecommendationOut": {
         "additionalProperties": false,
         "properties": {
@@ -2773,6 +3790,97 @@
           "item"
         ],
         "title": "RecommendationOut",
+        "type": "object"
+      },
+      "RecoveryConfirmIn": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "maxLength": 16,
+            "minLength": 6,
+            "title": "Code",
+            "type": "string"
+          },
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "new_password": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "New Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "code",
+          "new_password"
+        ],
+        "title": "RecoveryConfirmIn",
+        "type": "object"
+      },
+      "RecoveryRequestIn": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "RecoveryRequestIn",
+        "type": "object"
+      },
+      "RecoveryRequestOut": {
+        "additionalProperties": false,
+        "properties": {
+          "delivery": {
+            "enum": [
+              "sent",
+              "unavailable"
+            ],
+            "title": "Delivery",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "delivery",
+          "message"
+        ],
+        "title": "RecoveryRequestOut",
+        "type": "object"
+      },
+      "RecoveryStatusOut": {
+        "additionalProperties": false,
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "available",
+          "note"
+        ],
+        "title": "RecoveryStatusOut",
         "type": "object"
       },
       "RegisterRequest": {
@@ -2887,10 +3995,41 @@
             "title": "Days Of Week",
             "type": "array"
           },
+          "deliver_channels": {
+            "items": {
+              "enum": [
+                "app",
+                "whatsapp"
+              ],
+              "type": "string"
+            },
+            "maxItems": 2,
+            "title": "Deliver Channels",
+            "type": "array"
+          },
+          "deliver_time": {
+            "anyOf": [
+              {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deliver Time"
+          },
           "enabled": {
             "default": true,
             "title": "Enabled",
             "type": "boolean"
+          },
+          "lead_minutes": {
+            "default": 60,
+            "maximum": 720.0,
+            "minimum": 10.0,
+            "title": "Lead Minutes",
+            "type": "integer"
           },
           "local_time": {
             "default": "08:00",
@@ -2923,6 +4062,18 @@
             "title": "Platforms",
             "type": "array"
           },
+          "ready_by_time": {
+            "anyOf": [
+              {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ready By Time"
+          },
           "timezone": {
             "default": "UTC",
             "maxLength": 64,
@@ -2944,6 +4095,24 @@
             "title": "Days Of Week",
             "type": "array"
           },
+          "deliver_channels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Deliver Channels",
+            "type": "array"
+          },
+          "deliver_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deliver Time"
+          },
           "enabled": {
             "title": "Enabled",
             "type": "boolean"
@@ -2952,6 +4121,18 @@
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "last_batch_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Batch Id"
           },
           "last_job_id": {
             "anyOf": [
@@ -2976,6 +4157,10 @@
               }
             ],
             "title": "Last Run At"
+          },
+          "lead_minutes": {
+            "title": "Lead Minutes",
+            "type": "integer"
           },
           "local_time": {
             "title": "Local Time",
@@ -3004,6 +4189,17 @@
             "title": "Platforms",
             "type": "array"
           },
+          "ready_by_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ready By Time"
+          },
           "timezone": {
             "title": "Timezone",
             "type": "string"
@@ -3017,6 +4213,11 @@
           "platforms",
           "enabled",
           "missed_run_policy",
+          "ready_by_time",
+          "lead_minutes",
+          "deliver_time",
+          "deliver_channels",
+          "last_batch_id",
           "next_run_at",
           "last_run_at",
           "last_job_id"
@@ -3070,6 +4271,104 @@
           "current"
         ],
         "title": "SessionOut",
+        "type": "object"
+      },
+      "SourceOut": {
+        "additionalProperties": false,
+        "properties": {
+          "collection_location": {
+            "title": "Collection Location",
+            "type": "string"
+          },
+          "consent_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent At"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "hosted_status": {
+            "title": "Hosted Status",
+            "type": "string"
+          },
+          "implemented": {
+            "title": "Implemented",
+            "type": "boolean"
+          },
+          "last_checked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Checked At"
+          },
+          "last_login_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Login At"
+          },
+          "live_verified": {
+            "title": "Live Verified",
+            "type": "boolean"
+          },
+          "next_step": {
+            "title": "Next Step",
+            "type": "string"
+          },
+          "personalized_feed": {
+            "title": "Personalized Feed",
+            "type": "boolean"
+          },
+          "phone_only_support": {
+            "title": "Phone Only Support",
+            "type": "string"
+          },
+          "platform": {
+            "title": "Platform",
+            "type": "string"
+          },
+          "support_note": {
+            "title": "Support Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "platform",
+          "display_name",
+          "implemented",
+          "personalized_feed",
+          "hosted_status",
+          "next_step",
+          "phone_only_support",
+          "support_note",
+          "live_verified",
+          "consent_at",
+          "last_login_at",
+          "last_checked_at",
+          "collection_location"
+        ],
+        "title": "SourceOut",
         "type": "object"
       },
       "TodayOut": {
@@ -3157,6 +4456,72 @@
         "title": "TranscriptSource",
         "type": "string"
       },
+      "UsageOut": {
+        "additionalProperties": false,
+        "properties": {
+          "call_quota": {
+            "title": "Call Quota",
+            "type": "integer"
+          },
+          "calls_today": {
+            "title": "Calls Today",
+            "type": "integer"
+          },
+          "cost_estimate_today_usd": {
+            "title": "Cost Estimate Today Usd",
+            "type": "number"
+          },
+          "cost_quota_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Quota Usd"
+          },
+          "cost_unknown_calls_today": {
+            "title": "Cost Unknown Calls Today",
+            "type": "integer"
+          },
+          "message_quota": {
+            "title": "Message Quota",
+            "type": "integer"
+          },
+          "messages_today": {
+            "title": "Messages Today",
+            "type": "integer"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "token_quota": {
+            "title": "Token Quota",
+            "type": "integer"
+          },
+          "tokens_today": {
+            "title": "Tokens Today",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "tokens_today",
+          "calls_today",
+          "messages_today",
+          "cost_estimate_today_usd",
+          "cost_unknown_calls_today",
+          "token_quota",
+          "call_quota",
+          "message_quota",
+          "cost_quota_usd",
+          "note"
+        ],
+        "title": "UsageOut",
+        "type": "object"
+      },
       "UserOut": {
         "additionalProperties": false,
         "properties": {
@@ -3237,6 +4602,569 @@
         ],
         "title": "ValidationError",
         "type": "object"
+      },
+      "WatchDiscoveryOut": {
+        "additionalProperties": false,
+        "properties": {
+          "discovered_at": {
+            "format": "date-time",
+            "title": "Discovered At",
+            "type": "string"
+          },
+          "disposition": {
+            "title": "Disposition",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "item_id": {
+            "format": "uuid",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "matched_terms": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Matched Terms",
+            "type": "array"
+          },
+          "relevance": {
+            "title": "Relevance",
+            "type": "number"
+          },
+          "source_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Name"
+          },
+          "source_published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Published At"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "item_id",
+          "title",
+          "url",
+          "relevance",
+          "matched_terms",
+          "source_published_at",
+          "discovered_at",
+          "disposition",
+          "source_name"
+        ],
+        "title": "WatchDiscoveryOut",
+        "type": "object"
+      },
+      "WatchIn": {
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "exclusions": {
+            "items": {
+              "maxLength": 60,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Exclusions",
+            "type": "array"
+          },
+          "languages": {
+            "items": {
+              "maxLength": 16,
+              "minLength": 2,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Languages",
+            "type": "array"
+          },
+          "max_alerts_per_day": {
+            "default": 3,
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Max Alerts Per Day",
+            "type": "integer"
+          },
+          "mode": {
+            "default": "digest",
+            "enum": [
+              "digest",
+              "alert"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "poll_minutes": {
+            "default": 15,
+            "maximum": 1440.0,
+            "minimum": 5.0,
+            "title": "Poll Minutes",
+            "type": "integer"
+          },
+          "quiet_hours_end": {
+            "anyOf": [
+              {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiet Hours End"
+          },
+          "quiet_hours_start": {
+            "anyOf": [
+              {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiet Hours Start"
+          },
+          "relevance_threshold": {
+            "default": 0.5,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Relevance Threshold",
+            "type": "number"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/WatchSourceIn"
+            },
+            "maxItems": 10,
+            "title": "Sources",
+            "type": "array"
+          },
+          "timezone": {
+            "default": "UTC",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Timezone",
+            "type": "string"
+          },
+          "topics": {
+            "items": {
+              "maxLength": 60,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Topics",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "WatchIn",
+        "type": "object"
+      },
+      "WatchOut": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_done": {
+            "title": "Baseline Done",
+            "type": "boolean"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "exclusions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Exclusions",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "languages": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Languages",
+            "type": "array"
+          },
+          "last_error": {
+            "title": "Last Error",
+            "type": "string"
+          },
+          "last_polled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Polled At"
+          },
+          "max_alerts_per_day": {
+            "title": "Max Alerts Per Day",
+            "type": "integer"
+          },
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "next_poll_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Poll At"
+          },
+          "poll_minutes": {
+            "title": "Poll Minutes",
+            "type": "integer"
+          },
+          "quiet_hours_end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiet Hours End"
+          },
+          "quiet_hours_start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiet Hours Start"
+          },
+          "relevance_threshold": {
+            "title": "Relevance Threshold",
+            "type": "number"
+          },
+          "sources": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "topics": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Topics",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "topics",
+          "exclusions",
+          "languages",
+          "sources",
+          "relevance_threshold",
+          "mode",
+          "max_alerts_per_day",
+          "quiet_hours_start",
+          "quiet_hours_end",
+          "poll_minutes",
+          "timezone",
+          "enabled",
+          "last_polled_at",
+          "next_poll_at",
+          "last_error",
+          "baseline_done"
+        ],
+        "title": "WatchOut",
+        "type": "object"
+      },
+      "WatchSourceIn": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "rss",
+            "default": "rss",
+            "title": "Type",
+            "type": "string"
+          },
+          "url": {
+            "maxLength": 2000,
+            "minLength": 8,
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "WatchSourceIn",
+        "type": "object"
+      },
+      "WhatsAppLinkStartOut": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "deep_link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deep Link"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "instructions": {
+            "title": "Instructions",
+            "type": "string"
+          },
+          "message_text": {
+            "title": "Message Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "expires_at",
+          "deep_link",
+          "message_text",
+          "instructions"
+        ],
+        "title": "WhatsAppLinkStartOut",
+        "type": "object"
+      },
+      "WhatsAppPreferencesIn": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge_external_processing": {
+            "default": false,
+            "title": "Acknowledge External Processing",
+            "type": "boolean"
+          },
+          "alerts_enabled": {
+            "default": true,
+            "title": "Alerts Enabled",
+            "type": "boolean"
+          },
+          "digest_enabled": {
+            "default": true,
+            "title": "Digest Enabled",
+            "type": "boolean"
+          },
+          "paused_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paused Until"
+          },
+          "proactive_opt_in": {
+            "title": "Proactive Opt In",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "proactive_opt_in"
+        ],
+        "title": "WhatsAppPreferencesIn",
+        "type": "object"
+      },
+      "WhatsAppStatusOut": {
+        "additionalProperties": false,
+        "properties": {
+          "alerts_enabled": {
+            "title": "Alerts Enabled",
+            "type": "boolean"
+          },
+          "digest_enabled": {
+            "title": "Digest Enabled",
+            "type": "boolean"
+          },
+          "display_hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Hint"
+          },
+          "eligibility_note": {
+            "title": "Eligibility Note",
+            "type": "string"
+          },
+          "external_disclosure_acknowledged": {
+            "title": "External Disclosure Acknowledged",
+            "type": "boolean"
+          },
+          "in_service_window": {
+            "title": "In Service Window",
+            "type": "boolean"
+          },
+          "linked": {
+            "title": "Linked",
+            "type": "boolean"
+          },
+          "linked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked At"
+          },
+          "opt_out_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opt Out At"
+          },
+          "paused_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paused Until"
+          },
+          "proactive_opt_in": {
+            "title": "Proactive Opt In",
+            "type": "boolean"
+          },
+          "templates_approved": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Templates Approved",
+            "type": "object"
+          },
+          "transport_mode": {
+            "title": "Transport Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "transport_mode",
+          "linked",
+          "display_hint",
+          "linked_at",
+          "proactive_opt_in",
+          "digest_enabled",
+          "alerts_enabled",
+          "paused_until",
+          "opt_out_at",
+          "in_service_window",
+          "templates_approved",
+          "eligibility_note",
+          "external_disclosure_acknowledged"
+        ],
+        "title": "WhatsAppStatusOut",
+        "type": "object"
       }
     }
   },
@@ -3247,6 +5175,583 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/admin/entitlements/{user_id}": {
+      "get": {
+        "operationId": "get_entitlement_api_v1_admin_entitlements__user_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntitlementOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Entitlement",
+        "tags": [
+          "admin"
+        ]
+      },
+      "put": {
+        "operationId": "put_entitlement_api_v1_admin_entitlements__user_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntitlementIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntitlementOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Entitlement",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/providers": {
+      "get": {
+        "operationId": "providers_api_v1_admin_providers_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminProvidersOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Providers",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/providers/connections": {
+      "post": {
+        "operationId": "create_operator_connection_api_v1_admin_providers_connections_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderConnectionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Operator Connection",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/providers/connections/{connection_id}": {
+      "delete": {
+        "operationId": "revoke_operator_connection_api_v1_admin_providers_connections__connection_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Connection Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Operator Connection",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/providers/connections/{connection_id}/test": {
+      "post": {
+        "operationId": "test_operator_connection_api_v1_admin_providers_connections__connection_id__test_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Connection Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionTestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionTestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Test Operator Connection",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/whatsapp/templates": {
+      "get": {
+        "operationId": "list_templates_api_v1_admin_whatsapp_templates_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response List Templates Api V1 Admin Whatsapp Templates Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Templates",
+        "tags": [
+          "channels"
+        ]
+      }
+    },
+    "/api/v1/admin/whatsapp/templates/{name}": {
+      "put": {
+        "operationId": "upsert_template_api_v1_admin_whatsapp_templates__name__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Body",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Upsert Template Api V1 Admin Whatsapp Templates  Name  Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upsert Template",
+        "tags": [
+          "channels"
+        ]
+      }
+    },
+    "/api/v1/ai/connections": {
+      "get": {
+        "operationId": "list_connections_api_v1_ai_connections_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProviderConnectionOut"
+                  },
+                  "title": "Response List Connections Api V1 Ai Connections Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Connections",
+        "tags": [
+          "ai"
+        ]
+      },
+      "post": {
+        "operationId": "create_connection_api_v1_ai_connections_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderConnectionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Connection",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/connections/{connection_id}": {
+      "delete": {
+        "operationId": "delete_connection_api_v1_ai_connections__connection_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Connection Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Connection",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/connections/{connection_id}/test": {
+      "post": {
+        "operationId": "test_connection_api_v1_ai_connections__connection_id__test_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Connection Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionTestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionTestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Test Connection",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/options": {
+      "get": {
+        "operationId": "options_api_v1_ai_options_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiOptionsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Options",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/selection": {
+      "put": {
+        "operationId": "put_selection_api_v1_ai_selection_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiSelectionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiSelectionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Selection",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/usage": {
+      "get": {
+        "operationId": "usage_api_v1_ai_usage_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Usage",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "operationId": "login_api_v1_auth_login_post",
@@ -3304,6 +5809,109 @@
           }
         },
         "summary": "Logout",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/recovery": {
+      "get": {
+        "operationId": "recovery_status_api_v1_auth_recovery_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Recovery Status",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/recovery/confirm": {
+      "post": {
+        "operationId": "recovery_confirm_api_v1_auth_recovery_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryConfirmIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Recovery Confirm",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/recovery/request": {
+      "post": {
+        "operationId": "recovery_request_api_v1_auth_recovery_request_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryRequestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryRequestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Recovery Request",
         "tags": [
           "auth"
         ]
@@ -3662,6 +6270,108 @@
         "summary": "Capabilities",
         "tags": [
           "models"
+        ]
+      }
+    },
+    "/api/v1/channels/whatsapp": {
+      "delete": {
+        "operationId": "whatsapp_unlink_api_v1_channels_whatsapp_delete",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Whatsapp Unlink",
+        "tags": [
+          "channels"
+        ]
+      },
+      "get": {
+        "operationId": "whatsapp_status_api_v1_channels_whatsapp_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhatsAppStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Whatsapp Status",
+        "tags": [
+          "channels"
+        ]
+      }
+    },
+    "/api/v1/channels/whatsapp/link": {
+      "post": {
+        "operationId": "whatsapp_link_api_v1_channels_whatsapp_link_post",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhatsAppLinkStartOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Whatsapp Link",
+        "tags": [
+          "channels"
+        ]
+      }
+    },
+    "/api/v1/channels/whatsapp/preferences": {
+      "put": {
+        "operationId": "whatsapp_preferences_api_v1_channels_whatsapp_preferences_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WhatsAppPreferencesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhatsAppStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Whatsapp Preferences",
+        "tags": [
+          "channels"
         ]
       }
     },
@@ -4693,6 +7403,55 @@
         ]
       }
     },
+    "/api/v1/notifications": {
+      "get": {
+        "operationId": "notifications_api_v1_notifications_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationOut"
+                  },
+                  "title": "Response Notifications Api V1 Notifications Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Notifications",
+        "tags": [
+          "channels"
+        ]
+      }
+    },
     "/api/v1/platforms": {
       "get": {
         "operationId": "platforms_api_v1_platforms_get",
@@ -5204,6 +7963,775 @@
         "summary": "Search",
         "tags": [
           "search"
+        ]
+      }
+    },
+    "/api/v1/sources": {
+      "get": {
+        "operationId": "list_sources_api_v1_sources_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SourceOut"
+                  },
+                  "title": "Response List Sources Api V1 Sources Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Sources",
+        "tags": [
+          "sources"
+        ]
+      }
+    },
+    "/api/v1/sources/connect-sessions/{session_id}": {
+      "get": {
+        "operationId": "session_status_api_v1_sources_connect_sessions__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Connect-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Connect-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectSessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Session Status",
+        "tags": [
+          "sources"
+        ]
+      }
+    },
+    "/api/v1/sources/connect-sessions/{session_id}/cancel": {
+      "post": {
+        "operationId": "session_cancel_api_v1_sources_connect_sessions__session_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Connect-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Connect-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectSessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Session Cancel",
+        "tags": [
+          "sources"
+        ]
+      }
+    },
+    "/api/v1/sources/connect-sessions/{session_id}/finish": {
+      "post": {
+        "operationId": "session_finish_api_v1_sources_connect_sessions__session_id__finish_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Connect-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Connect-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectSessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Session Finish",
+        "tags": [
+          "sources"
+        ]
+      }
+    },
+    "/api/v1/sources/connect-sessions/{session_id}/frame": {
+      "get": {
+        "operationId": "session_frame_api_v1_sources_connect_sessions__session_id__frame_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Connect-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Connect-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Session Frame",
+        "tags": [
+          "sources"
+        ]
+      }
+    },
+    "/api/v1/sources/connect-sessions/{session_id}/input": {
+      "post": {
+        "operationId": "session_input_api_v1_sources_connect_sessions__session_id__input_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Connect-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Connect-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectInputIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Session Input",
+        "tags": [
+          "sources"
+        ]
+      }
+    },
+    "/api/v1/sources/location": {
+      "get": {
+        "operationId": "get_location_api_v1_sources_location_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionLocationIn"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Location",
+        "tags": [
+          "sources"
+        ]
+      },
+      "put": {
+        "operationId": "set_location_api_v1_sources_location_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionLocationIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Location",
+        "tags": [
+          "sources"
+        ]
+      }
+    },
+    "/api/v1/sources/{platform}/connect-sessions": {
+      "post": {
+        "operationId": "start_connect_api_v1_sources__platform__connect_sessions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "platform",
+            "required": true,
+            "schema": {
+              "title": "Platform",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectSessionCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectSessionStartOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Connect",
+        "tags": [
+          "sources"
+        ]
+      }
+    },
+    "/api/v1/sources/{platform}/hosted": {
+      "delete": {
+        "operationId": "disconnect_hosted_api_v1_sources__platform__hosted_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "platform",
+            "required": true,
+            "schema": {
+              "title": "Platform",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Disconnect Hosted",
+        "tags": [
+          "sources"
+        ]
+      }
+    },
+    "/api/v1/watches": {
+      "get": {
+        "operationId": "list_watches_api_v1_watches_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WatchOut"
+                  },
+                  "title": "Response List Watches Api V1 Watches Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Watches",
+        "tags": [
+          "watches"
+        ]
+      },
+      "post": {
+        "operationId": "create_watch_api_v1_watches_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Watch",
+        "tags": [
+          "watches"
+        ]
+      }
+    },
+    "/api/v1/watches/{watch_id}": {
+      "delete": {
+        "operationId": "delete_watch_api_v1_watches__watch_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "watch_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Watch Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Watch",
+        "tags": [
+          "watches"
+        ]
+      },
+      "put": {
+        "operationId": "update_watch_api_v1_watches__watch_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "watch_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Watch Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Watch",
+        "tags": [
+          "watches"
+        ]
+      }
+    },
+    "/api/v1/watches/{watch_id}/discoveries": {
+      "get": {
+        "operationId": "discoveries_api_v1_watches__watch_id__discoveries_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "watch_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Watch Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WatchDiscoveryOut"
+                  },
+                  "title": "Response Discoveries Api V1 Watches  Watch Id  Discoveries Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Discoveries",
+        "tags": [
+          "watches"
+        ]
+      }
+    },
+    "/api/v1/webhooks/whatsapp": {
+      "get": {
+        "operationId": "webhook_verify_api_v1_webhooks_whatsapp_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "hub.mode",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Hub.Mode",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hub.verify_token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Hub.Verify Token",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hub.challenge",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Hub.Challenge",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Webhook Verify",
+        "tags": [
+          "channels"
+        ]
+      },
+      "post": {
+        "operationId": "webhook_receive_api_v1_webhooks_whatsapp_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Webhook Receive Api V1 Webhooks Whatsapp Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Webhook Receive",
+        "tags": [
+          "channels"
         ]
       }
     }

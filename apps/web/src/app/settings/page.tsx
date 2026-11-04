@@ -4,7 +4,9 @@ import type { ModelsOut } from "@focusfeed/contracts";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
+import { AiSettings } from "@/components/ai-settings";
 import { PreferencesForm } from "@/components/preferences-form";
+import { WhatsAppSettings } from "@/components/whatsapp-settings";
 import { Badge, ErrorBox } from "@/components/states";
 import { api, unwrap } from "@/lib/api";
 import { RequireAuth, useAuth } from "@/lib/auth";
@@ -48,6 +50,8 @@ function SettingsInner() {
       <h1>Settings</h1>
       {error ? <ErrorBox error={error} onRetry={load} /> : null}
       <section className="card stack"><h2>Appearance</h2><div className="row" role="group" aria-label="Theme">{["system", "light", "dark"].map((t) => <button key={t} className={`btn-sm ${theme === t ? "btn-primary" : ""}`} aria-pressed={theme === t} onClick={() => applyTheme(t)}>{t}</button>)}</div></section>
+      <AiSettings />
+      <WhatsAppSettings />
       <section className="stack"><h2>Preferences</h2><PreferencesForm /></section>
       {models && (
         <section className="card stack">

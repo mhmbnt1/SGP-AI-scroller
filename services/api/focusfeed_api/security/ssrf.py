@@ -110,6 +110,7 @@ class FetchResult:
     status_code: int
     content: bytes
     content_type: str
+    headers: dict[str, str] | None = None
 
 
 class SafeFetcher:
@@ -128,10 +129,12 @@ class SafeFetcher:
         self.timeout = timeout
         self.resolver = resolver
 
-    def fetch(self, url: str) -> FetchResult:
+    def fetch(self, url: str, headers: dict[str, str] | None = None) -> FetchResult:
         current = validate_url(url, allowed_domains=self.allowed_domains, resolver=self.resolver)
         with httpx.Client(
-            follow_redirects=False, timeout=self.timeout, headers={"User-Agent": "FocusFeed/0.1"}
+            follow_redirects=False,
+            timeout=self.timeout,
+            headers={"User-Agent": "FocusFeed/0.1", **(headers or {})},
         ) as client:
             for _ in range(MAX_REDIRECTS + 1):
                 with client.stream("GET", current) as resp:
@@ -151,6 +154,10 @@ class SafeFetcher:
                         if len(buf) > self.max_bytes:
                             raise UnsafeURL("response exceeds size limit")
                     return FetchResult(
-                        current, resp.status_code, bytes(buf), resp.headers.get("content-type", "")
+                        current,
+                        resp.status_code,
+                        bytes(buf),
+                        resp.headers.get("content-type", ""),
+                        {k.lower(): v for k, v in resp.headers.items()},
                     )
         raise UnsafeURL("too many redirects")

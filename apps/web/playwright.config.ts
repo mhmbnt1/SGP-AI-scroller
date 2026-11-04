@@ -3,7 +3,9 @@ import { defineConfig, devices } from "@playwright/test";
 // The API + worker are started by scripts/e2e.sh (or must already be running on :8000 in test mode).
 export default defineConfig({
   testDir: "./e2e",
-  timeout: 90_000,
+  timeout: 120_000,
+  expect: { timeout: 15_000 }, // `next dev` compiles each route on first hit
+  workers: 1, // one API/worker pair; serial keeps rate limits and compile stalls out of the picture
   retries: 0,
   reporter: [["list"], ["json", { outputFile: "../../reports/web-e2e.json" }]],
   use: { baseURL: "http://localhost:3000", trace: "retain-on-failure" },

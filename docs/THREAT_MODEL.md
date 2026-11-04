@@ -49,6 +49,16 @@ cited where they exist; it is not a certification claim.
 | T15 | XSS via content rendered in clients | Session/CSRF token theft | React escapes by default; no `dangerouslySetInnerHTML`; CSP (`default-src 'self'`, `frame-ancestors 'none'`) on web and API; `rel="noopener noreferrer nofollow"` on source links | web unit test asserts `rel`; CSP header asserted in API tests |
 | T16 | Phone compromised / lost | Token theft | Token in Keychain/Keystore via SecureStore; cleared on logout and on 401; no cookies; app-level cache per user cleared on logout | `apps/mobile/__tests__/api-and-today.test.tsx` |
 | T17 | Platform anti-automation measures | Account restriction | Collector stops on `needs_login`/`challenge_required`, never solves CAPTCHAs or rotates accounts; bounded, slow scrolling; media blocked; user informed that viewing can influence recommendations | adapter fixture tests for both states |
+| T18 | Stolen/leaked provider API keys (operator or BYOK) | Paid abuse, data access at the provider | AES-GCM vault with deployment keys outside the DB; keys write-only; masked hints only; per-connection scope; admin-only operator routes; quotas + spend guard bound the blast radius | `test_vault_roundtrip_context_binding_and_rotation`, `test_byok_connection_scoped_masked_and_never_falls_back_to_operator` |
+| T19 | Cost runaway (loops, retries, large inputs) | Operator bill | atomic per-user reservations, daily call/token/message quotas, deployment spend guard, no retries on billing/auth, bounded retries elsewhere, circuit breaker, strict-cost option; provider-console caps recommended | `test_quota_exhaustion…`, `test_concurrent_reservations_respect_call_quota`, `test_strict_cost_guard_blocks_unknown_price` |
+| T20 | Private content sent to an external provider without consent | Privacy breach | disclosure acknowledgement gate per user; fallback off by default and never cross-scope; Ollama stays on the operator host | routing tests, e2e |
+| T21 | Hosted browser session hijack or cross-user access | Account takeover on platforms | owner-bound one-use token + session auth on every frame/input call; 0700 per-user profiles; TTL; no remote debugging; no shared profile | `test_sources_matrix_is_honest_and_phone_connect_contract` |
+| T22 | Operator access to hosted profiles | Platform credentials readable by the operator | **accepted and disclosed** (trust note in the consent screen); mitigations: file permissions, audit, deletion with the account | docs/PHASE2_SETUP.md |
+| T23 | Forged or replayed WhatsApp webhooks | Fake linking, fake STOP, spam | HMAC-SHA256 over raw body (constant time), verify token, size limit, phone-number-id check, inbox dedup by event key, one-use hashed link codes with attempts/expiry | `test_webhook_verification_and_signature_rules`, `test_link_consent_stop…` |
+| T24 | Unsolicited or non-compliant messaging | Platform penalties, user harm | opt-in default off, STOP before any model, approved-template gate outside the 24 h window, max delivery age, no sends from startup/migrations/seed/CI, test-recipient allowlist for live tests | `test_outbox_window_template_rules…`, `test_scheduled_digest…` |
+| T25 | Prompt injection through chat messages | Data exfiltration, misdirected sends | deterministic intents first; message text as untrusted user content; schema-validated outputs; recipients fixed by the link, never by the model; secrets never in prompts | `test_prompt_injection_in_message_cannot_change_recipient_or_reveal_keys` |
+| T26 | Account-recovery abuse (enumeration, brute force) | Takeover | uniform responses, hashed one-use codes, TTL, attempt cap, hourly per-IP+email limit, all sessions revoked after reset | `test_account_recovery_by_email_code` |
+| T27 | Watch feed SSRF / poisoned feeds | Internal network access, fake news | `SafeFetcher` for every fetch, https-only input, baseline + dedup, provenance shown, nothing invented | `test_watch_rejects_unsafe_sources`, `test_watch_rss_polling_baseline…` |
 
 ## Residual gaps (honest)
 
@@ -60,3 +70,11 @@ cited where they exist; it is not a certification claim.
 * **Evidence of live platform behaviour is absent**: adapters are fixture-verified only; live anti-bot behaviour may differ.
 * **Supply chain**: dependency scanning runs in CI (pip-audit, pnpm audit, gitleaks) but results are advisory (`|| true`) in this first iteration.
 * **Audit log is append-only by convention**, not by database privileges.
+
+### Phase 2 residual gaps
+
+* The operator can access hosted browser profiles (T22) — disclosed, not prevented.
+* Inbox/outbox are at-least-once / at-most-once with an explicit `unknown` state; no exactly-once claim.
+* Model identifiers, prices and the WhatsApp Graph API version are unverified configuration data.
+* The in-process rate limiter does not protect recovery/webhook endpoints across multiple API processes.
+* No live verification of any external integration was performed in the build environment.

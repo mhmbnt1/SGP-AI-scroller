@@ -67,10 +67,31 @@ model latency/usage in `model_runs`; security events in `audit_events` (hashed I
 
 ## Account recovery
 
-There is no email delivery in this self-hosted build. An administrator resets a password with a
-database update using `focusfeed_api.security.passwords.hash_password` (a `reset-password` CLI
-subcommand is listed in TASKS.md). Sessions can be revoked from Settings or by deleting rows in
-`auth_sessions`.
+Phase 2 adds self-service recovery by emailed one-time code (`GET /api/v1/auth/recovery`,
+`POST /api/v1/auth/recovery/request`, `POST /api/v1/auth/recovery/confirm`; web `/recover`, mobile
+"Forgot your password?"). It needs an operator-configured SMTP relay: `FF_MAIL_MODE=smtp`,
+`FF_SMTP_HOST`, `FF_SMTP_PORT`, `FF_SMTP_USERNAME`, `FF_SMTP_PASSWORD`, `FF_SMTP_FROM`,
+`FF_SMTP_STARTTLS` (docs/PHASE2_SETUP.md). With `FF_MAIL_MODE=disabled` (default) the apps say recovery
+is unavailable and the operator resets the password manually:
+
+```bash
+# set a new Argon2id hash for a user (run on the API host)
+uv run python - <<'PY'
+from focusfeed_api.db import configure_engine, session_factory
+from focusfeed_api.models import User
+from focusfeed_api.security.passwords import hash_password
+from sqlalchemy import select
+import os
+configure_engine(os.environ["DATABASE_URL"])
+with session_factory()() as db:
+    u = db.scalar(select(User).where(User.email == "user@example.com"))
+    u.password_hash = hash_password("a-new-long-passphrase")
+    db.commit()
+PY
+```
+
+Codes are hashed, expire after `FF_RECOVERY_CODE_TTL_MINUTES`, allow 5 attempts, are rate limited per
+IP+email per hour, and every session is revoked after a successful reset.
 
 ## Mobile prerequisites
 

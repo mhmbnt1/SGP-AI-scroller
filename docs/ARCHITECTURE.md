@@ -106,3 +106,54 @@ Alembic migration under `services/api/alembic/versions/`.
 | Model unavailable / invalid output | Bounded retry, then deterministic fallback labelled `analysis_source=unavailable`; the batch is still produced and the explanation says so. Never silently replaced by fixtures. |
 | Cancellation | Checked before each platform, each media/model stage and in the collector loop; partial results are kept; state `cancelled`. |
 | Account deletion during a job | Ownership re-check before any write; results refused; job cancelled. |
+
+## Phase 2 additions
+
+### Components
+
+* **Provider layer** (`focusfeed_api/providers/`): `types.py` (normalized request/result, error
+  taxonomy, retries, circuit breaker), `catalog.py` (models and prices as data), `hosted.py` (OpenAI,
+  Anthropic, Gemini, xAI adapters), `ollama.py`, `fake.py`, `registry.py`. `services/model_routing.py`
+  resolves a user's selection to an adapter + credential scope and wraps it with accounting
+  (`services/usage.py`: entitlements, atomic reservations, ledger, spend guard).
+* **Credential vault** (`security/secrets.py`): AES-256-GCM, versioned deployment keys, AAD bound to
+  `scope:owner:provider`. `services/provider_connections.py` stores operator and user keys (write-only).
+* **Hosted collection** (`services/hosted.py` + `focusfeed_worker/hosted.py`): per-user Chromium
+  profiles on the worker host, phone-driven connect sessions (frames in DB, inputs relayed), hosted
+  collection branch in the orchestrator chosen by `PreferenceProfile.collection_location`
+  (`hosted` default, `local` keeps the Phase 1 collector protocol).
+* **Watches** (`services/watches.py`): RSS/Atom polling through `SafeFetcher` with conditional requests,
+  baseline semantics, dedup, scoring, alert caps/quiet hours; discoveries feed digests or alerts.
+* **Schedules** gained `ready_by_time`/`lead_minutes` (when to collect) and `deliver_time`/
+  `deliver_channels` (when/where to send).
+* **WhatsApp** (`channels/whatsapp.py`, `routers/channels.py`, `services/channel_links.py`,
+  `services/outbox.py`, `services/conversation.py`): signed webhook intake → durable inbox → worker
+  processing (deterministic intents, linking, jobs through the normal queue) → transactional outbox →
+  transport (`MockTransport` / `GraphTransport`).
+* **Mail** (`services/mail.py`) for account recovery codes (`routers/auth.py`).
+
+### Data flow (WhatsApp request)
+
+Meta → `POST /api/v1/webhooks/whatsapp` (HMAC check, size limit, dedup insert, 200) → worker tick
+`process_inbox` → intent layer → for content requests: `CollectionJob(source="whatsapp",
+channel_link_id)` → orchestrator (hosted or local collection → enrich with the routed provider → batch)
+→ completion hook `reply_for_job` → outbox row (consent/window/template re-checked at dispatch) →
+`dispatch_due` → transport → status webhooks update the row.
+
+### Database (Phase 2 tables)
+
+`provider_connections`, `entitlements`, `usage_ledger`, `hosted_profiles`, `connect_sessions`,
+`topic_watches`, `watch_discoveries`, `channel_links`, `channel_link_codes`, `webhook_inbox`,
+`channel_conversations`, `delivery_outbox`, `message_templates`, `password_reset_codes`; columns added to
+`preference_profiles`, `schedules`, `collection_jobs`. Migrations `cd769a09ea9c` → `0235872e7b80` →
+`4c276e2bdae8` → `a30e00b86afb` on top of the untouched initial revision; all reversible and tested
+against a database that already holds Phase 1 rows.
+
+### Trust boundaries added
+
+* Operator host ↔ user: hosted profiles and connect frames live on the operator's host; the product
+  states this openly (no cryptographic isolation claim).
+* Service ↔ external model APIs: only after the user's disclosure acknowledgement; BYOK keys never leave
+  the vault except inside the SDK call.
+* Meta ↔ service: only signed webhooks are accepted; sends only through the Graph API with operator
+  tokens; consumer phone numbers are learned from verified inbound messages, never typed into the app.
