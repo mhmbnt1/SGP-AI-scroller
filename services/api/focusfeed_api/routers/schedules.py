@@ -17,14 +17,27 @@ router = APIRouter(prefix="/schedules", tags=["schedules"])
 
 def _out(s: Schedule) -> ScheduleOut:
     return ScheduleOut(
-        id=s.id, timezone=s.timezone, local_time=s.local_time, days_of_week=list(s.days_of_week or []), platforms=list(s.platforms or []),
-        enabled=s.enabled, missed_run_policy=s.missed_run_policy, next_run_at=s.next_run_at, last_run_at=s.last_run_at, last_job_id=s.last_job_id,
+        id=s.id,
+        timezone=s.timezone,
+        local_time=s.local_time,
+        days_of_week=list(s.days_of_week or []),
+        platforms=list(s.platforms or []),
+        enabled=s.enabled,
+        missed_run_policy=s.missed_run_policy,
+        next_run_at=s.next_run_at,
+        last_run_at=s.last_run_at,
+        last_job_id=s.last_job_id,
     )
 
 
 @router.get("", response_model=list[ScheduleOut])
 def list_schedules(user: CurrentUser, db: DB) -> list[ScheduleOut]:
-    return [_out(s) for s in db.scalars(select(Schedule).where(Schedule.user_id == user.id).order_by(Schedule.created_at)).all()]
+    return [
+        _out(s)
+        for s in db.scalars(
+            select(Schedule).where(Schedule.user_id == user.id).order_by(Schedule.created_at)
+        ).all()
+    ]
 
 
 @router.post("", response_model=ScheduleOut, status_code=status.HTTP_201_CREATED)

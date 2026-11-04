@@ -7,7 +7,17 @@ from urllib.parse import parse_qs, urlsplit, urlunsplit
 from focusfeed_api.pipeline.text import cosine, normalize
 from focusfeed_api.pipeline.types import Candidate
 
-TRACKING_PARAMS = {"utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "feature", "si", "igsh", "ref"}
+TRACKING_PARAMS = {
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_term",
+    "utm_content",
+    "feature",
+    "si",
+    "igsh",
+    "ref",
+}
 NEAR_DUP_COSINE = 0.97
 
 
@@ -54,14 +64,17 @@ def deduplicate(cands: list[Candidate]) -> list[Candidate]:
     for c in kept:
         dup = False
         for k in final:
-            if k.dto.platform != c.dto.platform or not c.embedding or not k.embedding:
+            if k.dto.platform != c.dto.platform:
                 continue
             if normalize(c.dto.title) and normalize(c.dto.title) == normalize(k.dto.title):
-                dup = True
-            elif cosine(c.embedding, k.embedding) >= NEAR_DUP_COSINE and (
-                (c.dto.creator_handle or "") == (k.dto.creator_handle or "")
+                dup = True  # identical title on the same platform (re-uploads)
+            elif (
+                c.embedding
+                and k.embedding
+                and cosine(c.embedding, k.embedding) >= NEAR_DUP_COSINE
+                and (c.dto.creator_handle or "") == (k.dto.creator_handle or "")
             ):
-                dup = True
+                dup = True  # semantic near-duplicate: only when the creator also matches
             if dup:
                 _merge_evidence(k, c)
                 c.exclusion_reason = "near_duplicate"

@@ -50,7 +50,9 @@ class Base(DeclarativeBase):
 
 
 class TimestampMixin:
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow, server_default=func.now()
     )
@@ -82,8 +84,12 @@ class AuthSession(Base):
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     client_kind: Mapped[str] = mapped_column(String(16))  # web | mobile
     user_agent: Mapped[str] = mapped_column(String(300), default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
-    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+    last_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
@@ -102,7 +108,9 @@ class PreferenceProfile(TimestampMixin, Base):
     per_platform_limit: Mapped[int] = mapped_column(Integer, default=5, server_default=text("5"))
     total_budget_minutes: Mapped[int] = mapped_column(Integer, default=30, server_default=text("30"))
     consent_saved_signals: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
-    consent_feedback_learning: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
+    consent_feedback_learning: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default=text("true")
+    )
     text_model: Mapped[str | None] = mapped_column(String(120), nullable=True)
     embedding_model: Mapped[str | None] = mapped_column(String(120), nullable=True)
 
@@ -121,7 +129,9 @@ class CollectorEnrollment(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     code_hash: Mapped[str] = mapped_column(String(64), unique=True)
     display_name: Mapped[str] = mapped_column(String(120), default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     device_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("collector_devices.id"), nullable=True)
@@ -197,7 +207,9 @@ class CollectionJob(Base):
     platform_states: Mapped[dict[str, Any]] = mapped_column(JSONType, default=dict)
     idempotency_key: Mapped[str] = mapped_column(String(128))
     source: Mapped[str] = mapped_column(String(16), default="manual")  # manual | schedule
-    schedule_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("schedules.id", ondelete="SET NULL"), nullable=True)
+    schedule_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("schedules.id", ondelete="SET NULL"), nullable=True
+    )
     preferences_version: Mapped[int] = mapped_column(Integer, default=1)
     lease_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     lease_owner: Mapped[str | None] = mapped_column(String(64), nullable=True)  # worker:<id> | device:<uuid>
@@ -209,7 +221,9 @@ class CollectionJob(Base):
     checkpoint: Mapped[dict[str, Any]] = mapped_column(JSONType, default=dict)
     stop_reason: Mapped[str] = mapped_column(String(500), default="")
     cancel_requested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow, server_default=func.now()
     )
@@ -225,13 +239,17 @@ class JobEvent(Base):
     __table_args__ = (UniqueConstraint("job_id", "seq", name="uq_job_event_seq"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=new_uuid)
-    job_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("collection_jobs.id", ondelete="CASCADE"), index=True)
+    job_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("collection_jobs.id", ondelete="CASCADE"), index=True
+    )
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     seq: Mapped[int] = mapped_column(Integer)
     kind: Mapped[str] = mapped_column(String(48))
     message: Mapped[str] = mapped_column(String(1000), default="")
     data: Mapped[dict[str, Any]] = mapped_column(JSONType, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
 
 
 # --------------------------------------------------------------------------- content
@@ -258,7 +276,9 @@ class ContentItem(TimestampMixin, Base):
     duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     thumbnail_url: Mapped[str | None] = mapped_column(String(2000), nullable=True)
-    first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    first_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
     is_synthetic: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
 
 
@@ -278,7 +298,9 @@ class UserObservation(Base):
     collection_mode: Mapped[str] = mapped_column(String(32))
     feed_position: Mapped[int | None] = mapped_column(Integer, nullable=True)
     observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
 
 
 class EvidenceArtifact(Base):
@@ -296,7 +318,9 @@ class EvidenceArtifact(Base):
     frames: Mapped[list[Any]] = mapped_column(JSONType, default=list)
     extraction_method: Mapped[str] = mapped_column(String(120), default="metadata")
     language: Mapped[str | None] = mapped_column(String(16), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
     retention_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
@@ -311,7 +335,9 @@ class ItemEmbedding(Base):
     model: Mapped[str] = mapped_column(String(120))
     dimensions: Mapped[int] = mapped_column(Integer)
     vector: Mapped[list[Any]] = mapped_column(JSONType)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
 
 
 # --------------------------------------------------------------------------- recommendations
@@ -334,7 +360,9 @@ class RecommendationBatch(Base):
     config_version: Mapped[str] = mapped_column(String(64), default="")
     provider: Mapped[str] = mapped_column(String(32), default="fake")
     model: Mapped[str] = mapped_column(String(120), default="")
-    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    generated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
     completion_status: Mapped[str] = mapped_column(String(16), default="completed")  # completed | partial
     platform_summary: Mapped[dict[str, Any]] = mapped_column(JSONType, default=dict)
     total_estimated_seconds: Mapped[int] = mapped_column(Integer, default=0)
@@ -351,7 +379,9 @@ class Recommendation(Base):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=new_uuid)
-    batch_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("recommendation_batches.id", ondelete="CASCADE"), index=True)
+    batch_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("recommendation_batches.id", ondelete="CASCADE"), index=True
+    )
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     item_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("content_items.id", ondelete="CASCADE"))
     platform: Mapped[str] = mapped_column(String(20))
@@ -367,7 +397,9 @@ class Recommendation(Base):
     duration_known: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
     seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     hidden_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
 
 
 class Feedback(Base):
@@ -376,12 +408,18 @@ class Feedback(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=new_uuid)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    item_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("content_items.id", ondelete="CASCADE"), nullable=True)
-    action: Mapped[str] = mapped_column(String(24))  # relevant | not_relevant | not_interested | hide_creator | seen
+    item_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("content_items.id", ondelete="CASCADE"), nullable=True
+    )
+    action: Mapped[str] = mapped_column(
+        String(24)
+    )  # relevant | not_relevant | not_interested | hide_creator | seen
     creator_handle: Mapped[str | None] = mapped_column(String(200), nullable=True)
     platform: Mapped[str | None] = mapped_column(String(20), nullable=True)
     scope: Mapped[str] = mapped_column(String(16), default="item")  # item | creator
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
@@ -392,7 +430,9 @@ class SavedItem(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=new_uuid)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     item_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("content_items.id", ondelete="CASCADE"))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
     removed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
@@ -403,8 +443,12 @@ class ModelRun(Base):
     __tablename__ = "model_runs"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=new_uuid)
-    user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    job_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("collection_jobs.id", ondelete="SET NULL"), nullable=True)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    job_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("collection_jobs.id", ondelete="SET NULL"), nullable=True
+    )
     provider: Mapped[str] = mapped_column(String(32))
     model: Mapped[str] = mapped_column(String(120))
     purpose: Mapped[str] = mapped_column(String(48))
@@ -414,7 +458,9 @@ class ModelRun(Base):
     output_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
     outcome: Mapped[str] = mapped_column(String(24))  # ok | invalid_output | timeout | unavailable | error
     error_code: Mapped[str] = mapped_column(String(64), default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
 
 
 class AuditEvent(Base):
@@ -422,12 +468,16 @@ class AuditEvent(Base):
     __table_args__ = (Index("ix_audit_user_created", "user_id", "created_at"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=new_uuid)
-    user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)  # kept after deletion, minimized
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True
+    )  # kept after deletion, minimized
     kind: Mapped[str] = mapped_column(String(48))
     request_id: Mapped[str] = mapped_column(String(64), default="")
     ip_hash: Mapped[str] = mapped_column(String(64), default="")
     data: Mapped[dict[str, Any]] = mapped_column(JSONType, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
 
 
 class IdempotencyRecord(Base):
@@ -440,4 +490,6 @@ class IdempotencyRecord(Base):
     scope: Mapped[str] = mapped_column(String(128))  # e.g. "user:<id>:jobs"
     key: Mapped[str] = mapped_column(String(128))
     response: Mapped[dict[str, Any]] = mapped_column(JSONType, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )

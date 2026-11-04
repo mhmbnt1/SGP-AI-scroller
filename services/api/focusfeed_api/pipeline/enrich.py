@@ -11,14 +11,15 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from typing import Any
 
 from focusfeed_api.pipeline.text import keyword_topics
 from focusfeed_api.pipeline.types import Candidate, PipelineConfig
 from focusfeed_api.providers.base import (
-    CancelToken,
     Cancelled,
+    CancelToken,
     InvalidOutput,
     Provider,
     ProviderError,
@@ -154,15 +155,22 @@ def validate_analysis(parsed: dict[str, Any], allowed: list[str]) -> dict[str, A
     }
 
 
+_URL_RE = re.compile(r"(?i)\b(?:https?://|www\.)\S+")
+
+
+def _strip_urls(text: str) -> str:
+    return _URL_RE.sub("[link removed]", text)
+
+
 def deterministic_analysis(c: Candidate) -> dict[str, Any]:
     segs = c.dto.evidence.transcript_segments
     if segs:
-        first = " ".join(s.text for s in segs[:2]).strip()
-        summary = f"Transcript excerpt: \"{first[:220]}\""
+        first = _strip_urls(" ".join(s.text for s in segs[:2]).strip())
+        summary = f'Transcript excerpt: "{first[:220]}"'
     elif c.dto.caption:
-        summary = f"Caption: {c.dto.caption[:220]}"
+        summary = f"Caption: {_strip_urls(c.dto.caption)[:220]}"
     elif c.dto.title:
-        summary = f"Title only: {c.dto.title[:200]} (no transcript or caption available)."
+        summary = f"Title only: {_strip_urls(c.dto.title)[:200]} (no transcript or caption available)."
     else:
         summary = "No descriptive text available."
     return {
@@ -192,7 +200,8 @@ def enrich_candidates(
         c.analysis_kind = c.dto.evidence.analysis_kind.value
         if provider_down or stats.model_calls >= cfg.max_model_calls:
             stats.skipped_budget += 0 if provider_down else 1
-            _apply(c, deterministic_analysis(c), source="deterministic")
+            stats.fallback += 1
+            _apply(c, deterministic_analysis(c), source="unavailable" if provider_down else "deterministic")
             continue
         user, allowed = build_user_payload(c)
         attempt = 0
@@ -202,8 +211,12 @@ def enrich_candidates(
             stats.model_calls += 1
             try:
                 res = provider.generate_structured(
-                    model=model, system=SYSTEM_PROMPT, user=user, schema=ANALYSIS_SCHEMA,
-                    timeout_seconds=timeout_seconds, cancel=cancel,
+                    model=model,
+                    system=SYSTEM_PROMPT,
+                    user=user,
+                    schema=ANALYSIS_SCHEMA,
+                    timeout_seconds=timeout_seconds,
+                    cancel=cancel,
                 )
                 parsed = validate_analysis(res.parsed, allowed)
                 record_run("analyze", "ok", res.latency_ms, res.input_tokens, res.output_tokens, "")

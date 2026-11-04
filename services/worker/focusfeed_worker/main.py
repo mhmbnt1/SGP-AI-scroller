@@ -8,10 +8,10 @@ import time
 import uuid
 
 import structlog
-
 from focusfeed_api.config import get_settings
 from focusfeed_api.db import session_factory
 from focusfeed_api.middleware import configure_logging
+
 from focusfeed_worker.orchestrator import retention_cleanup, tick
 
 log = structlog.get_logger("focusfeed.worker")

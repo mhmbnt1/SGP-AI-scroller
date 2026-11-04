@@ -15,10 +15,19 @@ router = APIRouter(prefix="/preferences", tags=["preferences"])
 
 def _out(p: PreferenceProfile) -> PreferencesOut:
     return PreferencesOut(
-        interests=p.interests, exclusions=p.exclusions, excluded_creators=p.excluded_creators, languages=p.languages,
-        platforms=p.platforms, per_platform_limit=p.per_platform_limit, total_budget_minutes=p.total_budget_minutes,
-        consent_saved_signals=p.consent_saved_signals, consent_feedback_learning=p.consent_feedback_learning,
-        text_model=p.text_model, embedding_model=p.embedding_model, version=p.version, updated_at=p.updated_at,
+        interests=p.interests,
+        exclusions=p.exclusions,
+        excluded_creators=p.excluded_creators,
+        languages=p.languages,
+        platforms=p.platforms,
+        per_platform_limit=p.per_platform_limit,
+        total_budget_minutes=p.total_budget_minutes,
+        consent_saved_signals=p.consent_saved_signals,
+        consent_feedback_learning=p.consent_feedback_learning,
+        text_model=p.text_model,
+        embedding_model=p.embedding_model,
+        version=p.version,
+        updated_at=p.updated_at,
     )
 
 
@@ -30,10 +39,14 @@ def get_preferences(user: CurrentUser, db: DB) -> PreferencesOut:
 
 
 @router.put("", response_model=PreferencesOut)
-def put_preferences(body: PreferencesIn, user: CurrentUser, db: DB, settings: AppSettings, request: Request) -> PreferencesOut:
+def put_preferences(
+    body: PreferencesIn, user: CurrentUser, db: DB, settings: AppSettings, request: Request
+) -> PreferencesOut:
     if settings.ff_mode == "live" and "demo" in body.platforms:
         body.platforms = [p for p in body.platforms if p != "demo"]
-    prof = update_profile(db, user, body, settings.text_models + ["fake-text"], settings.embedding_models + ["fake-embed"])
+    prof = update_profile(
+        db, user, body, settings.text_models + ["fake-text"], settings.embedding_models + ["fake-embed"]
+    )
     audit.record(db, "preferences.updated", user_id=user.id, request=request, data={"version": prof.version})
     db.commit()
     db.refresh(prof)

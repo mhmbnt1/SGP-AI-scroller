@@ -16,7 +16,9 @@ def _similarity(a: Candidate, b: Candidate) -> float:
     return min(1.0, sim)
 
 
-def select_diverse(cands: list[Candidate], *, per_platform_limit: int, total_budget_seconds: int) -> tuple[list[Candidate], dict]:
+def select_diverse(
+    cands: list[Candidate], *, per_platform_limit: int, total_budget_seconds: int
+) -> tuple[list[Candidate], dict]:
     """Greedy MMR per platform, then a global consumption-budget cut in rank order.
 
     Returns the ordered selection and a summary dict with counts per platform.

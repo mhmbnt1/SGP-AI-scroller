@@ -75,7 +75,12 @@ def validate_url(url: str, *, allowed_domains: set[str] | None = None, resolver=
     host = (parts.hostname or "").lower().rstrip(".")
     if not host:
         raise UnsafeURL("missing host")
-    if host in BLOCKED_HOSTS or host.endswith(".localhost") or host.endswith(".internal") or host.endswith(".local"):
+    if (
+        host in BLOCKED_HOSTS
+        or host.endswith(".localhost")
+        or host.endswith(".internal")
+        or host.endswith(".local")
+    ):
         raise UnsafeURL(f"host not allowed: {host}")
     port = parts.port or (443 if parts.scheme == "https" else 80)
     if port not in ALLOWED_PORTS:
@@ -89,7 +94,9 @@ def validate_url(url: str, *, allowed_domains: set[str] | None = None, resolver=
         if not _is_public_ip(literal):
             raise UnsafeURL("destination address is not public")
     else:
-        if allowed_domains is not None and not any(host == d or host.endswith("." + d) for d in allowed_domains):
+        if allowed_domains is not None and not any(
+            host == d or host.endswith("." + d) for d in allowed_domains
+        ):
             raise UnsafeURL(f"domain not in allowlist: {host}")
         for ip in resolver(host):
             if not _is_public_ip(ip):
@@ -108,8 +115,14 @@ class FetchResult:
 class SafeFetcher:
     """HTTP(S) fetcher that validates every hop and bounds the body size."""
 
-    def __init__(self, *, allowed_domains: set[str] | None = None, max_bytes: int = MAX_BYTES_DEFAULT,
-                 timeout: float = 15.0, resolver=resolve_host) -> None:
+    def __init__(
+        self,
+        *,
+        allowed_domains: set[str] | None = None,
+        max_bytes: int = MAX_BYTES_DEFAULT,
+        timeout: float = 15.0,
+        resolver=resolve_host,
+    ) -> None:
         self.allowed_domains = allowed_domains
         self.max_bytes = max_bytes
         self.timeout = timeout
@@ -117,7 +130,9 @@ class SafeFetcher:
 
     def fetch(self, url: str) -> FetchResult:
         current = validate_url(url, allowed_domains=self.allowed_domains, resolver=self.resolver)
-        with httpx.Client(follow_redirects=False, timeout=self.timeout, headers={"User-Agent": "FocusFeed/0.1"}) as client:
+        with httpx.Client(
+            follow_redirects=False, timeout=self.timeout, headers={"User-Agent": "FocusFeed/0.1"}
+        ) as client:
             for _ in range(MAX_REDIRECTS + 1):
                 with client.stream("GET", current) as resp:
                     if resp.status_code in (301, 302, 303, 307, 308):
@@ -125,7 +140,8 @@ class SafeFetcher:
                         if not location:
                             raise UnsafeURL("redirect without location")
                         current = validate_url(
-                            str(httpx.URL(current).join(location)), allowed_domains=self.allowed_domains,
+                            str(httpx.URL(current).join(location)),
+                            allowed_domains=self.allowed_domains,
                             resolver=self.resolver,
                         )
                         continue
@@ -134,5 +150,7 @@ class SafeFetcher:
                         buf.extend(chunk)
                         if len(buf) > self.max_bytes:
                             raise UnsafeURL("response exceeds size limit")
-                    return FetchResult(current, resp.status_code, bytes(buf), resp.headers.get("content-type", ""))
+                    return FetchResult(
+                        current, resp.status_code, bytes(buf), resp.headers.get("content-type", "")
+                    )
         raise UnsafeURL("too many redirects")

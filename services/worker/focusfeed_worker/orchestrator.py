@@ -10,10 +10,9 @@ from __future__ import annotations
 import threading
 import uuid
 from datetime import UTC, datetime, timedelta
+from typing import Literal, cast
 
 import structlog
-from sqlalchemy import select
-
 from ff_protocol import CollectorJobInstruction, CollectorResultState, JobBudget, Platform
 from focusfeed_api.adapters.demo import DemoAdapter
 from focusfeed_api.config import get_settings
@@ -27,6 +26,7 @@ from focusfeed_api.services.collectors import has_online_device
 from focusfeed_api.services.ingest import ingest_platform_result
 from focusfeed_api.services.platforms import PLATFORM_MATRIX
 from focusfeed_api.services.schedules import run_due_schedules
+from sqlalchemy import select
 
 log = structlog.get_logger("focusfeed.worker")
 
@@ -143,7 +143,13 @@ def _stage_start(db, job: CollectionJob, settings, cancel: CancelToken) -> None:
         if PLATFORM_MATRIX.get(p, {}).get("status") != "implemented":
             states[p] = "unsupported"
     job.platform_states = states
-    jobsvc.transition(db, job, jobsvc.WAITING, reason="waiting for local collector" + ("" if has_online_device(db, job.user_id) else " (collector offline)"))
+    jobsvc.transition(
+        db,
+        job,
+        jobsvc.WAITING,
+        reason="waiting for local collector"
+        + ("" if has_online_device(db, job.user_id) else " (collector offline)"),
+    )
     job.deadline_at = datetime.now(UTC) + timedelta(seconds=COLLECTOR_WAIT_SECONDS)
     db.commit()
 
@@ -151,8 +157,13 @@ def _stage_start(db, job: CollectionJob, settings, cancel: CancelToken) -> None:
 def _collect_in_process(db, job: CollectionJob, cancel: CancelToken) -> None:
     budget = JobBudget(**(job.budget or {}))
     instruction = CollectorJobInstruction(
-        job_id=str(job.id), lease_token="in-process-demo-lease-0000", lease_expires_at=datetime.now(UTC) + timedelta(minutes=10),
-        mode=job.mode, platforms=[Platform(p) for p in job.platforms], query=job.query, budget=budget,
+        job_id=str(job.id),
+        lease_token="in-process-demo-lease-0000",  # noqa: S106
+        lease_expires_at=datetime.now(UTC) + timedelta(minutes=10),
+        mode=cast(Literal["daily", "search"], job.mode),
+        platforms=[Platform(p) for p in job.platforms],
+        query=job.query,
+        budget=budget,
     )
     states = dict(job.platform_states or {})
     total = 0
@@ -162,7 +173,11 @@ def _collect_in_process(db, job: CollectionJob, cancel: CancelToken) -> None:
         if _deadline_exceeded(job):
             states[p] = "timeout"
             continue
-        conn = db.scalar(select(PlatformConnection).where(PlatformConnection.user_id == job.user_id, PlatformConnection.platform == p))
+        conn = db.scalar(
+            select(PlatformConnection).where(
+                PlatformConnection.user_id == job.user_id, PlatformConnection.platform == p
+            )
+        )
         if conn is not None and not conn.enabled:
             states[p] = "unsupported"
             jobsvc.add_event(db, job, "platform_skipped", f"{p}: disabled by user")
@@ -172,7 +187,9 @@ def _collect_in_process(db, job: CollectionJob, cancel: CancelToken) -> None:
         if job.mode == "search":
             result = adapter.search_public_content(instruction, budget, cancel_check=lambda: cancel.cancelled)
         else:
-            result = adapter.collect_personalized_feed(instruction, budget, checkpoint, cancel_check=lambda: cancel.cancelled)
+            result = adapter.collect_personalized_feed(
+                instruction, budget, checkpoint, cancel_check=lambda: cancel.cancelled
+            )
         if result.state == CollectorResultState.cancelled:
             raise Cancelled()
         n = ingest_platform_result(db, job, result)
@@ -181,8 +198,13 @@ def _collect_in_process(db, job: CollectionJob, cancel: CancelToken) -> None:
         cp = dict(job.checkpoint or {})
         cp[p] = result.checkpoint_external_ids[:1000]
         job.checkpoint = cp
-        jobsvc.add_event(db, job, "platform_result", f"{p}: {result.state.value}, {n} items, {result.scroll_steps} scroll steps; {result.stop_reason}",
-                         {"platform": p, "items": n})
+        jobsvc.add_event(
+            db,
+            job,
+            "platform_result",
+            f"{p}: {result.state.value}, {n} items, {result.scroll_steps} scroll steps; {result.stop_reason}",
+            {"platform": p, "items": n},
+        )
         db.commit()
     job.platform_states = states
     if total == 0:
@@ -220,11 +242,21 @@ def _stage_rank(db, job: CollectionJob, cancel: CancelToken) -> None:
     completion = "partial" if incomplete else "completed"
     if existing_batch(db, job) is None:
         batch, info = build_batch(db, job, provider=provider, cancel=cancel, completion_status=completion)
-        jobsvc.add_event(db, job, "batch", f"batch {batch.id} with {info.get('selected', 0)} recommendations from {info.get('candidates', 0)} candidates",
-                         {"batch_id": str(batch.id), **{k: v for k, v in info.items() if k in ("notes", "model_outcomes")}})
+        jobsvc.add_event(
+            db,
+            job,
+            "batch",
+            f"batch {batch.id} with {info.get('selected', 0)} recommendations from {info.get('candidates', 0)} candidates",
+            {
+                "batch_id": str(batch.id),
+                **{k: v for k, v in info.items() if k in ("notes", "model_outcomes")},
+            },
+        )
     else:
         jobsvc.add_event(db, job, "batch", "batch already existed (idempotent retry)")
-    reason = "" if not incomplete else "incomplete platforms: " + ", ".join(f"{p}={states[p]}" for p in incomplete)
+    reason = (
+        "" if not incomplete else "incomplete platforms: " + ", ".join(f"{p}={states[p]}" for p in incomplete)
+    )
     jobsvc.transition(db, job, jobsvc.PARTIAL if incomplete else jobsvc.COMPLETED, reason=reason)
     db.commit()
 
@@ -235,16 +267,28 @@ def _stage_rank(db, job: CollectionJob, cancel: CancelToken) -> None:
 def expire_waiting_jobs(db) -> int:
     now = datetime.now(UTC)
     n = 0
-    for job in db.scalars(select(CollectionJob).where(CollectionJob.state == jobsvc.WAITING, CollectionJob.deadline_at < now)).all():
-        jobsvc.transition(db, job, jobsvc.FAILED, reason="collector did not pick up the job in time (collector offline?)")
+    for job in db.scalars(
+        select(CollectionJob).where(CollectionJob.state == jobsvc.WAITING, CollectionJob.deadline_at < now)
+    ).all():
+        jobsvc.transition(
+            db, job, jobsvc.FAILED, reason="collector did not pick up the job in time (collector offline?)"
+        )
         n += 1
-    for job in db.scalars(select(CollectionJob).where(CollectionJob.state == jobsvc.COLLECTING, CollectionJob.lease_owner.like("device:%"), CollectionJob.lease_expires_at < now - timedelta(minutes=5))).all():
+    for job in db.scalars(
+        select(CollectionJob).where(
+            CollectionJob.state == jobsvc.COLLECTING,
+            CollectionJob.lease_owner.like("device:%"),
+            CollectionJob.lease_expires_at < now - timedelta(minutes=5),
+        )
+    ).all():
         # device lease long expired: let another claim pick it up (state stays collecting; claim recovers it)
         jobsvc.add_event(db, job, "lease_expired", "collector lease expired; awaiting re-claim")
         job.lease_expires_at = None
         job.lease_owner = None
         if job.deadline_at is not None and job.deadline_at < now:
-            jobsvc.transition(db, job, jobsvc.FAILED, reason="collection deadline exceeded after lease expiry")
+            jobsvc.transition(
+                db, job, jobsvc.FAILED, reason="collection deadline exceeded after lease expiry"
+            )
         n += 1
     db.commit()
     return n
@@ -254,7 +298,11 @@ def retention_cleanup(db, retention_days: int) -> int:
     now = datetime.now(UTC)
     cutoff = now - timedelta(days=retention_days)
     n = 0
-    for ev in db.scalars(select(EvidenceArtifact).where(EvidenceArtifact.retention_until.is_not(None), EvidenceArtifact.retention_until < now)).all():
+    for ev in db.scalars(
+        select(EvidenceArtifact).where(
+            EvidenceArtifact.retention_until.is_not(None), EvidenceArtifact.retention_until < now
+        )
+    ).all():
         db.delete(ev)
         n += 1
     for e in db.scalars(select(JobEvent).where(JobEvent.created_at < cutoff)).all():

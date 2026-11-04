@@ -1,0 +1,41 @@
+<!doctype html>
+<html><head><title>YouTube</title></head>
+<body>
+<ytd-app>
+  <ytd-masthead>
+    <div id="buttons"><ytd-topbar-menu-button-renderer><button id="avatar-btn"><img id="img" src="https://yt3.ggpht.com/a.jpg"></button></ytd-topbar-menu-button-renderer></div>
+  </ytd-masthead>
+  <ytd-rich-grid-renderer>
+    <ytd-rich-item-renderer>
+      <ytd-thumbnail><a href="/watch?v=abc123DEF45"><img src="https://i.ytimg.com/vi/abc123DEF45/hq720.jpg">
+        <ytd-thumbnail-overlay-time-status-renderer><span>12:34</span></ytd-thumbnail-overlay-time-status-renderer></a></ytd-thumbnail>
+      <a id="video-title-link" href="/watch?v=abc123DEF45" title="High-protein chicken stir fry in 15 minutes"><yt-formatted-string id="video-title">High-protein chicken stir fry in 15 minutes</yt-formatted-string></a>
+      <ytd-channel-name><div id="container"><div id="text-container"><a href="/@weeknight_kitchen">Weeknight Kitchen</a></div></div></ytd-channel-name>
+    </ytd-rich-item-renderer>
+    <!-- duplicate card for the same video (virtualized list re-render) -->
+    <ytd-rich-item-renderer>
+      <a id="video-title-link" href="/watch?v=abc123DEF45&pp=xyz" title="High-protein chicken stir fry in 15 minutes">dup</a>
+      <ytd-channel-name><a href="/@weeknight_kitchen">Weeknight Kitchen</a></ytd-channel-name>
+    </ytd-rich-item-renderer>
+    <ytd-rich-item-renderer>
+      <a id="video-title-link" href="/watch?v=ghi678JKL90" title="Marathon training week vlog"><yt-formatted-string id="video-title">Marathon training week vlog</yt-formatted-string></a>
+      <!-- missing channel + duration metadata on purpose -->
+    </ytd-rich-item-renderer>
+    <ytd-rich-item-renderer>
+      <!-- lazy placeholder: no anchor yet -->
+      <div class="skeleton"></div>
+    </ytd-rich-item-renderer>
+    <ytd-rich-item-renderer>
+      <ytd-thumbnail><a href="/watch?v=mno345PQR67"><ytd-thumbnail-overlay-time-status-renderer><span>1:02:03</span></ytd-thumbnail-overlay-time-status-renderer></a></ytd-thumbnail>
+      <a id="video-title-link" href="/watch?v=mno345PQR67" title="Sourdough starter from scratch">Sourdough starter from scratch</a>
+      <ytd-channel-name><a href="/@slowfoodlab">Slow Food Lab</a></ytd-channel-name>
+    </ytd-rich-item-renderer>
+  </ytd-rich-grid-renderer>
+  <ytd-rich-section-renderer>
+    <ytd-reel-shelf-renderer>
+      <ytd-reel-item-renderer><a href="/shorts/SHORT00001a"><h3>Fix your squat depth in 60 seconds</h3></a><a href="/@coach_amira">Coach Amira</a></ytd-reel-item-renderer>
+      <ytm-shorts-lockup-view-model><a href="/shorts/SHORT00002b"><span class="shortsLockupViewModelHostMetadataTitle">Zone 2 running explained</span></a></ytm-shorts-lockup-view-model>
+    </ytd-reel-shelf-renderer>
+  </ytd-rich-section-renderer>
+</ytd-app>
+</body></html>

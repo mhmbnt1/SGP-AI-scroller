@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "FocusFeed",
+    "slug": "focusfeed",
+    "version": "0.1.0",
+    "scheme": "focusfeed",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": { "image": "./assets/icon.png", "resizeMode": "contain", "backgroundColor": "#0b6e4f" },
+    "ios": {
+      "bundleIdentifier": "local.focusfeed.app",
+      "supportsTablet": false,
+      "infoPlist": { "NSAppTransportSecurity": { "NSAllowsArbitraryLoads": false } }
+    },
+    "android": {
+      "package": "local.focusfeed.app",
+      "adaptiveIcon": { "foregroundImage": "./assets/icon.png", "backgroundColor": "#0b6e4f" },
+      "usesCleartextTraffic": false,
+      "edgeToEdgeEnabled": true
+    },
+    "web": { "bundler": "metro", "output": "single" },
+    "plugins": ["expo-router", "expo-secure-store", "expo-web-browser"],
+    "experiments": { "typedRoutes": true }
+  }
+}

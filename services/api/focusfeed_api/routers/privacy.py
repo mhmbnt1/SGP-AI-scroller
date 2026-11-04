@@ -21,7 +21,14 @@ def export(principal: CurrentPrincipal, db: DB, request: Request) -> ExportOut:
 
 
 @router.post("/delete", response_model=OkOut)
-def delete(body: DeleteAccountIn, principal: CurrentPrincipal, db: DB, settings: AppSettings, request: Request, response: Response) -> OkOut:
+def delete(
+    body: DeleteAccountIn,
+    principal: CurrentPrincipal,
+    db: DB,
+    settings: AppSettings,
+    request: Request,
+    response: Response,
+) -> OkOut:
     if not verify_password(principal.user.password_hash, body.password):
         raise Unauthorized("Password is incorrect.", code="invalid_credentials")
     uid = principal.user.id
@@ -30,4 +37,6 @@ def delete(body: DeleteAccountIn, principal: CurrentPrincipal, db: DB, settings:
     db.commit()
     response.delete_cookie(settings.ff_cookie_name, path="/")
     response.delete_cookie(settings.ff_csrf_cookie_name, path="/")
-    return OkOut(message="Your account and data were deleted. Backups may retain copies for up to the configured retention period.")
+    return OkOut(
+        message="Your account and data were deleted. Backups may retain copies for up to the configured retention period."
+    )

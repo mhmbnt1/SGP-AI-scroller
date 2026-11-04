@@ -241,7 +241,9 @@ class CollectorJobInstruction(BaseModel):
     mode: Literal["daily", "search"]
     platforms: list[Platform] = Field(min_length=1, max_length=6)
     query: Annotated[str | None, Field(max_length=500)] = None
-    preferred_languages: list[Annotated[str, Field(max_length=16)]] = Field(default_factory=list, max_length=8)
+    preferred_languages: list[Annotated[str, Field(max_length=16)]] = Field(
+        default_factory=list, max_length=8
+    )
     budget: JobBudget = Field(default_factory=JobBudget)
     checkpoint_external_ids: dict[str, list[str]] = Field(default_factory=dict)
     allowed_domains: list[Annotated[str, Field(max_length=100)]] = Field(default_factory=list, max_length=32)

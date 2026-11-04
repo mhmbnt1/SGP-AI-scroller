@@ -4,7 +4,10 @@ from tests.conftest import UserSession
 
 
 def test_register_login_logout_cycle(client: TestClient):
-    r = client.post("/api/v1/auth/register", json={"email": "u1@example.com", "password": "a-long-enough-password", "client": "web"})
+    r = client.post(
+        "/api/v1/auth/register",
+        json={"email": "u1@example.com", "password": "a-long-enough-password", "client": "web"},
+    )
     assert r.status_code == 201
     assert "ff_session" in r.cookies
     csrf = r.json()["csrf_token"]
@@ -22,23 +25,34 @@ def test_register_login_logout_cycle(client: TestClient):
 def test_weak_password_and_duplicate_email(client: TestClient):
     r = client.post("/api/v1/auth/register", json={"email": "u2@example.com", "password": "short"})
     assert r.status_code == 422 and r.json()["error"]["code"] == "weak_password"
-    client.post("/api/v1/auth/register", json={"email": "u3@example.com", "password": "a-long-enough-password"})
-    dup = client.post("/api/v1/auth/register", json={"email": "U3@example.com", "password": "a-long-enough-password"})
+    client.post(
+        "/api/v1/auth/register", json={"email": "u3@example.com", "password": "a-long-enough-password"}
+    )
+    dup = client.post(
+        "/api/v1/auth/register", json={"email": "U3@example.com", "password": "a-long-enough-password"}
+    )
     assert dup.status_code == 409
 
 
 def test_login_wrong_password_and_rate_limit(client: TestClient):
-    client.post("/api/v1/auth/register", json={"email": "u4@example.com", "password": "a-long-enough-password"})
+    client.post(
+        "/api/v1/auth/register", json={"email": "u4@example.com", "password": "a-long-enough-password"}
+    )
     client.cookies.clear()
     for _ in range(10):
-        r = client.post("/api/v1/auth/login", json={"email": "u4@example.com", "password": "wrong-password-xx"})
+        r = client.post(
+            "/api/v1/auth/login", json={"email": "u4@example.com", "password": "wrong-password-xx"}
+        )
         assert r.status_code == 401
     r = client.post("/api/v1/auth/login", json={"email": "u4@example.com", "password": "wrong-password-xx"})
     assert r.status_code == 429
 
 
 def test_mobile_bearer_flow(client: TestClient):
-    r = client.post("/api/v1/auth/register", json={"email": "m@example.com", "password": "a-long-enough-password", "client": "mobile"})
+    r = client.post(
+        "/api/v1/auth/register",
+        json={"email": "m@example.com", "password": "a-long-enough-password", "client": "mobile"},
+    )
     assert r.status_code == 201
     token = r.json()["access_token"]
     assert token and "ff_session" not in r.cookies
@@ -49,7 +63,9 @@ def test_mobile_bearer_flow(client: TestClient):
 
 
 def test_cross_origin_state_change_blocked(alice: UserSession):
-    r = alice.client.post("/api/v1/auth/logout", headers={"X-CSRF-Token": alice.csrf, "Origin": "https://evil.example"})
+    r = alice.client.post(
+        "/api/v1/auth/logout", headers={"X-CSRF-Token": alice.csrf, "Origin": "https://evil.example"}
+    )
     assert r.status_code == 403 and r.json()["error"]["code"] == "origin_not_allowed"
 
 

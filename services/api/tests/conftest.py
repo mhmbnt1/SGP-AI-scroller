@@ -15,7 +15,9 @@ from sqlalchemy import text
 os.environ.setdefault("FF_MODE", "test")
 os.environ.setdefault("FF_ENV", "development")
 os.environ.setdefault("FF_SECRET_KEY", "test-secret-key-not-for-production-use-0123456789")
-TEST_DB_URL = os.environ.get("TEST_DATABASE_URL", "postgresql+psycopg://postgres:postgres@localhost:5432/focusfeed_test")
+TEST_DB_URL = os.environ.get(
+    "TEST_DATABASE_URL", "postgresql+psycopg://postgres:postgres@localhost:5432/focusfeed_test"
+)
 os.environ["DATABASE_URL"] = TEST_DB_URL
 
 from focusfeed_api import db as dbmod  # noqa: E402
@@ -35,7 +37,13 @@ def migrated_database() -> Iterator[None]:
     with engine.begin() as conn:
         conn.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
     env = {**os.environ, "DATABASE_URL": TEST_DB_URL}
-    subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=API_DIR, env=env, check=True, capture_output=True)
+    subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
+        cwd=API_DIR,
+        env=env,
+        check=True,
+        capture_output=True,
+    )
     yield
 
 
@@ -47,7 +55,14 @@ def clean_tables() -> Iterator[None]:
     yield
     engine = dbmod.get_engine()
     with engine.begin() as conn:
-        names = [r[0] for r in conn.execute(text("SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename <> 'alembic_version'"))]
+        names = [
+            r[0]
+            for r in conn.execute(
+                text(
+                    "SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename <> 'alembic_version'"
+                )
+            )
+        ]
         if names:
             conn.execute(text("TRUNCATE " + ", ".join(f'"{n}"' for n in names) + " CASCADE"))
 
@@ -70,7 +85,12 @@ class UserSession:
         self.email = email
         self.password = password
         self.mobile = mobile
-        body = {"email": email, "password": password, "display_name": email.split("@")[0], "client": "mobile" if mobile else "web"}
+        body = {
+            "email": email,
+            "password": password,
+            "display_name": email.split("@")[0],
+            "client": "mobile" if mobile else "web",
+        }
         r = client.post("/api/v1/auth/register", json=body)
         assert r.status_code == 201, r.text
         data = r.json()
@@ -115,10 +135,11 @@ def mobile_user(app) -> Iterator[UserSession]:
 
 
 def run_worker_until_terminal(job_id: str, worker_id: str = "test", max_ticks: int = 10) -> str:
-    from focusfeed_worker.orchestrator import process_job
-    from focusfeed_api.services import jobs as jobsvc
-    from focusfeed_api.models import CollectionJob
     import uuid as _uuid
+
+    from focusfeed_api.models import CollectionJob
+    from focusfeed_api.services import jobs as jobsvc
+    from focusfeed_worker.orchestrator import process_job
 
     for _ in range(max_ticks):
         with dbmod.session_factory()() as db:

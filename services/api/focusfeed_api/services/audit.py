@@ -21,8 +21,14 @@ def ip_hash(request: Request | None) -> str:
     return hashlib.sha256(f"{salt}:{request.client.host}".encode()).hexdigest()[:32]
 
 
-def record(db: Session, kind: str, *, user_id: uuid.UUID | None, request: Request | None = None,
-           data: dict[str, Any] | None = None) -> None:
+def record(
+    db: Session,
+    kind: str,
+    *,
+    user_id: uuid.UUID | None,
+    request: Request | None = None,
+    data: dict[str, Any] | None = None,
+) -> None:
     db.add(
         AuditEvent(
             user_id=user_id,

@@ -106,7 +106,9 @@ def get_collector_device(
     if device is None:
         raise Unauthorized("Collector credential is not recognised.", code="device_unauthorized")
     if device.revoked_at is not None:
-        raise Forbidden("This collector has been revoked. Pair it again from the web app.", code="device_revoked")
+        raise Forbidden(
+            "This collector has been revoked. Pair it again from the web app.", code="device_revoked"
+        )
     owner = db.get(User, device.user_id)
     if owner is None or owner.deleted_at is not None:
         raise Forbidden("Owner account is unavailable.", code="device_revoked")
