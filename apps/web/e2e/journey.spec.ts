@@ -29,7 +29,8 @@ test("register -> onboard -> demo batch -> inspect -> save -> feedback -> refres
   // today: generate batch via the real queue + worker
   await page.getByRole("link", { name: "Today" }).click();
   await page.getByRole("button", { name: "Refresh batch" }).click();
-  await expect(page.getByRole("heading", { name: "That’s the whole batch." })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText(/Collecting your batch — (completed|partial)/)).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole("heading", { name: "That’s the whole batch." })).toBeVisible();
   const cards = page.getByRole("article");
   const count = await cards.count();
   expect(count).toBeGreaterThan(0);
@@ -54,9 +55,10 @@ test("register -> onboard -> demo batch -> inspect -> save -> feedback -> refres
   // refresh produces a new batch and history has two runs
   await page.getByRole("link", { name: "Today" }).click();
   await page.getByRole("button", { name: "Refresh batch" }).click();
-  await expect(page.getByRole("heading", { name: "That’s the whole batch." })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText(/Collecting your batch — (completed|partial)/)).toBeVisible({ timeout: 60_000 });
   await page.getByRole("link", { name: "History" }).click();
-  await expect(page.getByRole("row")).toHaveCount(4); // header + 2 runs + ... tolerant: at least 2 runs
+  await expect(page.getByRole("link", { name: /Daily batch/ })).toHaveCount(2); // two batches
+  expect(await page.getByRole("row").count()).toBeGreaterThanOrEqual(3); // header + 2 runs
   // logout clears the session
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/$/);
@@ -72,11 +74,13 @@ test("two users cannot access each other's batches via direct URL", async ({ bro
   await register(pa, `${unique()}@example.com`, "a-long-e2e-passphrase");
   await pa.getByRole("checkbox", { name: /YouTube/ }).check();
   await pa.getByRole("button", { name: "Save and continue" }).click();
+  await expect(pa).toHaveURL(/connect/);
   await pa.getByRole("link", { name: "Today" }).click();
   await pa.getByRole("button", { name: "Refresh batch" }).click();
-  await expect(pa.getByRole("heading", { name: "That’s the whole batch." })).toBeVisible({ timeout: 60_000 });
+  await expect(pa.getByText(/Collecting your batch — (completed|partial)/)).toBeVisible({ timeout: 60_000 });
   await pa.getByRole("link", { name: "History" }).click();
   await pa.getByRole("link", { name: /Daily batch/ }).first().click();
+  await pa.waitForURL(/history\//);
   const batchUrl = pa.url();
   expect(batchUrl).toMatch(/history\//);
 

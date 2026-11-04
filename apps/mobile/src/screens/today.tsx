@@ -39,7 +39,7 @@ export function TodayScreen() {
   async function start() {
     if (starting || jobId) return;
     setStarting(true); setError(null);
-    try { const a = await unwrap(api.POST("/api/v1/jobs", { body: { mode: "daily", idempotency_key: `mobile-${new Date().toISOString().slice(0, 16)}` } })); setJobId(a.job_id); }
+    try { const a = await unwrap(api.POST("/api/v1/jobs", { body: { mode: "daily" } })); setJobId(a.job_id); }
     catch (e) { setError(e); } finally { setStarting(false); }
   }
   function patch(id: string, p: Partial<RecommendationOut>) {

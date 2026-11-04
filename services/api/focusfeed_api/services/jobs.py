@@ -127,10 +127,20 @@ def _default_platforms(db: Session, user: User) -> list[str]:
 
 
 def derive_idempotency_key(
-    user_id: uuid.UUID, mode: str, query: str | None, platforms: list[str], bucket_minutes: int = 2
+    user_id: uuid.UUID,
+    mode: str,
+    query: str | None,
+    platforms: list[str],
+    bucket_minutes: int = 2,
+    salt: int = 0,
 ) -> str:
+    """Server-derived key for requests without a client key.
+
+    Collapses accidental double submissions of the same request within a short window while a run is
+    still active. Finished runs never block a new run (see ``create_job``): the ``salt`` is bumped.
+    """
     bucket = int(datetime.now(UTC).timestamp() // (bucket_minutes * 60))
-    raw = json.dumps([str(user_id), mode, (query or "").strip().lower(), sorted(platforms), bucket])
+    raw = json.dumps([str(user_id), mode, (query or "").strip().lower(), sorted(platforms), bucket, salt])
     return "auto-" + hashlib.sha256(raw.encode()).hexdigest()[:32]
 
 
@@ -158,6 +168,18 @@ def create_job(
     existing = db.scalar(
         select(CollectionJob).where(CollectionJob.user_id == user.id, CollectionJob.idempotency_key == key)
     )
+    if existing is not None and (idempotency_key or existing.state in ACTIVE):
+        # explicit client key: strict idempotency; auto key: only an *active* run is a duplicate
+        return existing, False
+    salt = 1
+    while existing is not None and existing.state not in ACTIVE:
+        key = derive_idempotency_key(user.id, mode, query, plats, salt=salt)
+        existing = db.scalar(
+            select(CollectionJob).where(
+                CollectionJob.user_id == user.id, CollectionJob.idempotency_key == key
+            )
+        )
+        salt += 1
     if existing is not None:
         return existing, False
     active = (

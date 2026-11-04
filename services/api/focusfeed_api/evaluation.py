@@ -204,7 +204,11 @@ def run_evaluation() -> dict[str, Any]:
                 )
             }
             out[variant]["budget_adherence_rate"] = round(
-                sum(1 for r in per_query if r["split"] == split and r["variant"] == variant and r["budget_adherence"])
+                sum(
+                    1
+                    for r in per_query
+                    if r["split"] == split and r["variant"] == variant and r["budget_adherence"]
+                )
                 / len(CASES),
                 3,
             )

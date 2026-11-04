@@ -207,3 +207,13 @@ def test_disabled_platform_is_skipped(alice: UserSession):
     batch = alice.get(f"/api/v1/batches/{detail['batch_id']}").json()
     assert all(r["platform"] == "youtube" for r in batch["recommendations"])
     assert batch["completion_status"] == "partial"
+
+
+def test_auto_idempotency_key_dedupes_only_active_runs(alice: UserSession):
+    _onboard(alice)
+    first = alice.post("/api/v1/jobs", json={"mode": "daily"}).json()
+    dup = alice.post("/api/v1/jobs", json={"mode": "daily"}).json()
+    assert dup["job_id"] == first["job_id"] and dup["created"] is False  # still active -> duplicate
+    assert run_worker_until_terminal(first["job_id"]) == "completed"
+    again = alice.post("/api/v1/jobs", json={"mode": "daily"}).json()
+    assert again["job_id"] != first["job_id"] and again["created"] is True  # finished -> fresh run

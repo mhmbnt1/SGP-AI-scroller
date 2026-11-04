@@ -34,7 +34,9 @@ function TodayInner() {
     setStarting(true);
     setError(null);
     try {
-      const accepted = await unwrap(api.POST("/api/v1/jobs", { body: { mode: "daily", idempotency_key: `web-${new Date().toISOString().slice(0, 16)}` } }));
+      // No client key: the server collapses accidental double-submits of an *active* run and never
+      // blocks a new run behind a finished one.
+      const accepted = await unwrap(api.POST("/api/v1/jobs", { body: { mode: "daily" } }));
       setJobId(accepted.job_id);
     } catch (e) { setError(e); } finally { setStarting(false); }
   }
