@@ -118,7 +118,13 @@ def test_production_settings_reject_insecure_defaults(monkeypatch):
     with pytest.raises(ValueError) as exc:
         Settings(_env_file=None)
     msg = str(exc.value)
-    assert "FF_SECRET_KEY" in msg and "FF_COOKIE_SECURE" in msg and "FF_MODE" in msg and "DATABASE_URL" in msg
+    assert (
+        "FF_SECRET_KEY" in msg
+        and "FF_COOKIE_SECURE" in msg
+        and "FF_MODE" in msg
+        and "DATABASE_URL" in msg
+        and "FF_CREDENTIAL_KEYS" in msg
+    )
     ok = Settings(
         _env_file=None,
         ff_env="production",
@@ -127,6 +133,7 @@ def test_production_settings_reject_insecure_defaults(monkeypatch):
         ff_mode="live",
         database_url="postgresql+psycopg://ff:strongpw@db:5432/ff",
         ff_allowed_origins="https://app.example",
+        ff_credential_keys="v1:" + __import__("base64").b64encode(b"k" * 32).decode(),
     )
     assert ok.is_production
 

@@ -67,10 +67,54 @@ class Settings(BaseSettings):
     ff_rate_limit_login_per_minute: int = Field(default=10, ge=1)
     ff_rate_limit_enroll_per_minute: int = Field(default=5, ge=1)
     ff_rate_limit_jobs_per_minute: int = Field(default=10, ge=1)
+    ff_rate_limit_recovery_per_hour: int = Field(default=5, ge=1)
 
     # media tools
     ff_enable_ytdlp: bool = False
     ff_enable_ffmpeg: bool = False
+
+    # ---- Phase 2: credential vault, operator providers, quotas ----
+    ff_credential_keys: str = ""  # "v1:<base64 32 bytes>[,v2:...]" — deployment secret kept outside the DB
+    ff_credential_active_key: str = "v1"
+    ff_enabled_providers: str = "ollama"  # operator-enabled provider ids offered to consumers
+    ff_consumer_default_provider: str = ""  # default provider for new consumers ("" = first enabled)
+    ff_byok_enabled: bool = True
+    ff_daily_token_quota_default: int = Field(default=200_000, ge=0)
+    ff_daily_call_quota_default: int = Field(default=200, ge=0)
+    ff_daily_message_quota_default: int = Field(default=20, ge=0)
+    ff_daily_spend_guard_usd: float = Field(default=5.0, ge=0.0)  # deployment-wide estimated AI spend per day
+    ff_strict_cost_guard: bool = False  # block paid calls whose cost cannot be estimated
+    # ---- Phase 2: account recovery mail (operator setup) ----
+    ff_mail_mode: Literal["disabled", "capture", "smtp"] = "disabled"
+    ff_smtp_host: str = ""
+    ff_smtp_port: int = Field(default=587, ge=1, le=65535)
+    ff_smtp_username: str = ""
+    ff_smtp_password: str = ""  # noqa: S105
+    ff_smtp_from: str = ""
+    ff_smtp_starttls: bool = True
+    ff_recovery_code_ttl_minutes: int = Field(default=15, ge=5, le=60)
+    # ---- Phase 2: hosted collection ----
+    ff_hosted_collection_enabled: bool = True
+    ff_hosted_profiles_dir: str = ".focusfeed/hosted-profiles"
+    ff_connect_session_ttl_minutes: int = Field(default=10, ge=2, le=30)
+    ff_connect_frame_max_bytes: int = Field(default=150_000, ge=20_000, le=600_000)
+    # ---- Phase 2: watches ----
+    ff_watch_poll_minutes_default: int = Field(default=15, ge=5, le=1440)
+    ff_public_app_url: str = "http://localhost:3000"
+    # ---- Phase 2: WhatsApp (official Business Platform / Cloud API) ----
+    ff_whatsapp_mode: Literal["disabled", "mock", "live"] = "disabled"
+    wa_api_version: str = (
+        "v23.0"  # confirm against Meta docs at deployment; not verifiable from the build environment
+    )
+    wa_verify_token: str = ""  # GET verification token (separate from the app secret)
+    wa_app_secret: str = ""  # HMAC-SHA256 signature key for POST webhooks
+    wa_access_token: str = ""  # system-user token for sending
+    wa_phone_number_id: str = ""  # business sender id we send from and expect inbound on
+    wa_business_account_id: str = ""
+    wa_business_phone_e164: str = ""  # display number for wa.me deep links (digits only, e.g. 15551234567)
+    wa_test_recipients: str = ""  # comma-separated allowlisted wa_ids for live tests
+    wa_max_delivery_age_hours: int = Field(default=12, ge=1, le=72)
+    wa_service_window_hours: int = Field(default=24, ge=1, le=24)
 
     @property
     def allowed_origins(self) -> list[str]:
@@ -87,6 +131,14 @@ class Settings(BaseSettings):
     @property
     def vision_models(self) -> list[str]:
         return [m.strip() for m in self.ff_vision_models.split(",") if m.strip()]
+
+    @property
+    def enabled_providers(self) -> list[str]:
+        return [p.strip() for p in self.ff_enabled_providers.split(",") if p.strip()]
+
+    @property
+    def wa_test_recipient_list(self) -> list[str]:
+        return [p.strip() for p in self.wa_test_recipients.split(",") if p.strip()]
 
     @property
     def is_production(self) -> bool:
@@ -119,6 +171,18 @@ class Settings(BaseSettings):
                 problems.append("DATABASE_URL must not use the default postgres/postgres credentials")
             if any(o.startswith("http://") for o in self.allowed_origins):
                 problems.append("FF_ALLOWED_ORIGINS must be https in production")
+            if not self.ff_credential_keys:
+                problems.append("FF_CREDENTIAL_KEYS must be set in production (credential vault)")
+            if self.ff_whatsapp_mode == "live" and not all(
+                [self.wa_verify_token, self.wa_app_secret, self.wa_access_token, self.wa_phone_number_id]
+            ):
+                problems.append(
+                    "FF_WHATSAPP_MODE=live requires WA_VERIFY_TOKEN, WA_APP_SECRET, WA_ACCESS_TOKEN and WA_PHONE_NUMBER_ID"
+                )
+            if self.ff_mail_mode == "capture":
+                problems.append("FF_MAIL_MODE=capture is a development mode; use smtp or disabled")
+            if self.ff_mail_mode == "smtp" and not (self.ff_smtp_host and self.ff_smtp_from):
+                problems.append("FF_MAIL_MODE=smtp requires FF_SMTP_HOST and FF_SMTP_FROM")
             if problems:
                 raise ValueError("Refusing to start in production: " + "; ".join(problems))
         return self

@@ -17,7 +17,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 2
+      "actualWorkers": 1
     },
     "preserveOutput": "always",
     "projects": [
@@ -26,7 +26,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "desktop",
         "name": "desktop",
@@ -35,14 +35,14 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 90000
+        "timeout": 120000
       },
       {
         "outputDir": "/home/user/sgp-ai-scroller/apps/web/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "mobile",
         "name": "mobile",
@@ -51,7 +51,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 90000
+        "timeout": 120000
       }
     ],
     "filteredProjects": [
@@ -62,14 +62,14 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "name": "desktop",
         "testDir": "/home/user/sgp-ai-scroller/apps/web/e2e",
         "snapshotDir": "/home/user/sgp-ai-scroller/apps/web/e2e",
         "testIgnore": [],
         "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
-        "timeout": 90000,
+        "timeout": 120000,
         "use": {
           "baseURL": "http://localhost:3000",
           "trace": "retain-on-failure",
@@ -98,14 +98,14 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "name": "mobile",
         "testDir": "/home/user/sgp-ai-scroller/apps/web/e2e",
         "snapshotDir": "/home/user/sgp-ai-scroller/apps/web/e2e",
         "testIgnore": [],
         "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
-        "timeout": 90000,
+        "timeout": 120000,
         "use": {
           "baseURL": "http://localhost:3000",
           "trace": "retain-on-failure",
@@ -150,7 +150,7 @@
     "updateSnapshots": "default",
     "updateSourceMethod": "patch",
     "version": "1.64.1",
-    "workers": 2,
+    "workers": 1,
     "webServer": {
       "command": "pnpm dev",
       "url": "http://localhost:3000",
@@ -174,7 +174,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 120000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -184,12 +184,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 23050,
+                  "duration": 13181,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-04T00:02:27.776Z",
+                  "startTime": "2026-11-04T02:00:43.180Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -208,7 +208,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 120000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -218,12 +218,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12704,
+                  "duration": 8638,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-04T00:02:50.984Z",
+                  "startTime": "2026-11-04T02:00:56.466Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -242,7 +242,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 120000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -250,14 +250,14 @@
               "results": [
                 {
                   "workerIndex": 1,
-                  "parallelIndex": 1,
+                  "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 21892,
+                  "duration": 7846,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-04T00:02:27.772Z",
+                  "startTime": "2026-11-04T02:01:26.782Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -276,7 +276,7 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 90000,
+              "timeout": 120000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
@@ -284,14 +284,14 @@
               "results": [
                 {
                   "workerIndex": 1,
-                  "parallelIndex": 1,
+                  "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12659,
+                  "duration": 7233,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-04T00:02:49.828Z",
+                  "startTime": "2026-11-04T02:01:34.741Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -305,13 +305,293 @@
           "column": 5
         }
       ]
+    },
+    {
+      "title": "phase2.spec.ts",
+      "file": "phase2.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "hosted sources are the default; the local collector is an advanced option",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4883,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T02:01:05.119Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e4611f7184bd5eaa3983-61026725cb9c39717724",
+          "file": "phase2.spec.ts",
+          "line": 38,
+          "column": 5
+        },
+        {
+          "title": "consumer picks an AI provider without any API key; usage and disclosure are shown",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3985,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T02:01:10.013Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e4611f7184bd5eaa3983-cb4f2dc296f7d47d3960",
+          "file": "phase2.spec.ts",
+          "line": 61,
+          "column": 5
+        },
+        {
+          "title": "schedule with 'ready by' + WhatsApp delivery, a topic watch, and account recovery entry",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7857,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T02:01:14.006Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e4611f7184bd5eaa3983-88cfea8d093bb5d62d9a",
+          "file": "phase2.spec.ts",
+          "line": 78,
+          "column": 5
+        },
+        {
+          "title": "WhatsApp linking from the phone: code shown in app, verified from a signed inbound message, STOP respected",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4252,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T02:01:21.876Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e4611f7184bd5eaa3983-646ed5891233ac13db23",
+          "file": "phase2.spec.ts",
+          "line": 103,
+          "column": 5
+        },
+        {
+          "title": "hosted sources are the default; the local collector is an advanced option",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3271,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T02:01:41.998Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e4611f7184bd5eaa3983-596e3c8d9f02d117bf9c",
+          "file": "phase2.spec.ts",
+          "line": 38,
+          "column": 5
+        },
+        {
+          "title": "consumer picks an AI provider without any API key; usage and disclosure are shown",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2680,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T02:01:45.277Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e4611f7184bd5eaa3983-7954307cb492a1717301",
+          "file": "phase2.spec.ts",
+          "line": 61,
+          "column": 5
+        },
+        {
+          "title": "schedule with 'ready by' + WhatsApp delivery, a topic watch, and account recovery entry",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3720,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T02:01:47.964Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e4611f7184bd5eaa3983-720ee454ae5f6571152b",
+          "file": "phase2.spec.ts",
+          "line": 78,
+          "column": 5
+        },
+        {
+          "title": "WhatsApp linking from the phone: code shown in app, verified from a signed inbound message, STOP respected",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6249,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T02:01:51.694Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e4611f7184bd5eaa3983-ff29a37bbb43a3052b13",
+          "file": "phase2.spec.ts",
+          "line": 103,
+          "column": 5
+        }
+      ]
     }
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-04T00:02:26.511Z",
-    "duration": 37318.166,
-    "expected": 4,
+    "startTime": "2026-11-04T02:00:38.357Z",
+    "duration": 79763.844,
+    "expected": 12,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

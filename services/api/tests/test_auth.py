@@ -89,3 +89,71 @@ def test_error_envelope_has_request_id(client: TestClient):
 def test_health(client: TestClient):
     assert client.get("/api/v1/health/live").json() == {"status": "ok"}
     assert client.get("/api/v1/health/ready").json()["database"] == "ok"
+
+
+def test_account_recovery_by_email_code(client: TestClient, monkeypatch):
+    """Mobile-usable recovery: request → code arrives by (captured) mail → confirm → old sessions die."""
+    from focusfeed_api.config import reset_settings_cache
+    from focusfeed_api.services import mail
+
+    monkeypatch.setenv("FF_MAIL_MODE", "capture")
+    reset_settings_cache()
+    mail.clear_captured()
+    client.post(
+        "/api/v1/auth/register",
+        json={"email": "rec@example.com", "password": "a-long-enough-password", "client": "mobile"},
+    )
+    reg = client.post(
+        "/api/v1/auth/login",
+        json={"email": "rec@example.com", "password": "a-long-enough-password", "client": "mobile"},
+    )
+    token = reg.json()["access_token"]
+    assert client.get("/api/v1/auth/recovery").json()["available"] is True
+    # unknown and known emails get the same answer (no account enumeration)
+    unknown = client.post("/api/v1/auth/recovery/request", json={"email": "nobody@example.com"})
+    known = client.post("/api/v1/auth/recovery/request", json={"email": "rec@example.com"})
+    assert unknown.status_code == known.status_code == 200
+    assert unknown.json() == known.json()
+    sent = mail.captured()
+    assert len(sent) == 1 and sent[0].to == "rec@example.com"
+    code = sent[0].body.split("code is: ")[1].split()[0]
+    assert len(code) == 8 and code not in known.text
+    # wrong code is rejected without revealing anything
+    bad = client.post(
+        "/api/v1/auth/recovery/confirm",
+        json={"email": "rec@example.com", "code": "WRONGCOD", "new_password": "another-long-password"},
+    )
+    assert bad.status_code == 401 and bad.json()["error"]["code"] == "invalid_recovery_code"
+    weak = client.post(
+        "/api/v1/auth/recovery/confirm",
+        json={"email": "rec@example.com", "code": code, "new_password": "short"},
+    )
+    assert weak.status_code == 422
+    ok = client.post(
+        "/api/v1/auth/recovery/confirm",
+        json={"email": "rec@example.com", "code": code.lower(), "new_password": "another-long-password"},
+    )
+    assert ok.status_code == 200, ok.text
+    # one use only
+    again = client.post(
+        "/api/v1/auth/recovery/confirm",
+        json={"email": "rec@example.com", "code": code, "new_password": "yet-another-long-password"},
+    )
+    assert again.status_code == 401
+    # old bearer session revoked; new password works
+    assert client.get("/api/v1/me", headers={"Authorization": f"Bearer {token}"}).status_code == 401
+    assert (
+        client.post(
+            "/api/v1/auth/login",
+            json={"email": "rec@example.com", "password": "another-long-password", "client": "mobile"},
+        ).status_code
+        == 200
+    )
+    monkeypatch.delenv("FF_MAIL_MODE")
+    reset_settings_cache()
+
+
+def test_account_recovery_unavailable_without_mail(client: TestClient):
+    assert client.get("/api/v1/auth/recovery").json()["available"] is False
+    r = client.post("/api/v1/auth/recovery/request", json={"email": "x@example.com"})
+    assert r.status_code == 200 and r.json()["delivery"] == "unavailable"

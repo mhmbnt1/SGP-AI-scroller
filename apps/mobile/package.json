@@ -17,6 +17,7 @@
     "@focusfeed/contracts": "workspace:*",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "58.0.23",
+    "expo-clipboard": "~58.0.4",
     "expo-constants": "~58.0.15",
     "expo-linking": "~58.0.16",
     "expo-router": "~58.0.30",
@@ -45,8 +46,12 @@
   },
   "jest": {
     "preset": "jest-expo",
-    "setupFilesAfterEnv": ["./jest.setup.ts"],
-    "testMatch": ["**/__tests__/**/*.test.ts?(x)"],
+    "setupFilesAfterEnv": [
+      "./jest.setup.ts"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.test.ts?(x)"
+    ],
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg|openapi-fetch)"
     ]

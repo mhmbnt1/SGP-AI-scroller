@@ -3,6 +3,7 @@
 import type { ConnectionOut, DeviceOut, EnrollmentOut, PlatformCapabilityOut } from "@focusfeed/contracts";
 import { useCallback, useEffect, useState } from "react";
 
+import { HostedSources } from "@/components/hosted-sources";
 import { Badge, ErrorBox, Loading } from "@/components/states";
 import { api, unwrap } from "@/lib/api";
 import { RequireAuth, useAuth } from "@/lib/auth";
@@ -38,7 +39,10 @@ function ConnectInner() {
       <div className="page-head"><div><h1>Connect</h1><p className="muted">Your feeds are collected by a small program on <em>your own PC</em>. You sign into each platform yourself in a dedicated browser window; cookies never leave your machine.</p></div></div>
       {!live && <div className="notice info" role="status">This server runs in <strong>{me?.mode}</strong> mode: batches use labelled synthetic content and no collector is required. Pairing still works for testing the flow.</div>}
       {error ? <ErrorBox error={error} onRetry={load} /> : null}
-      <section className="card stack">
+      <HostedSources />
+      <details className="card">
+        <summary>Advanced: run the collector on your own PC instead (optional)</summary>
+      <section className="stack" style={{ marginTop: 12 }}>
         <h2>1. Install and pair the collector (Windows)</h2>
         <ol>
           <li>Install Python 3.12+ and <code>uv</code>, then in the repository: <code>uv sync --all-packages</code> and <code>uv run playwright install chromium</code>.</li>
@@ -53,15 +57,16 @@ function ConnectInner() {
           </div>
         )}
       </section>
-      <section className="card stack">
+      <section className="stack">
         <h2>2. Sign in to platforms on your PC</h2>
         <p>For each platform run <code>uv run focusfeed-collector login youtube</code> (or <code>instagram</code>). A dedicated browser profile opens; sign in with the official page, then close it. Check with <code>uv run focusfeed-collector status</code>.</p>
         <p className="muted"><small>The collector only views, scrolls and extracts. It never posts, likes, follows, messages or deletes. Viewing content may still influence the platform’s own recommendations for you. If a platform asks for verification, complete it yourself in the official app — the collector stops and waits.</small></p>
       </section>
-      <section className="card stack">
+      <section className="stack">
         <h2>3. Keep it running</h2>
         <p><code>uv run focusfeed-collector run</code> must stay running (a console window) for scheduled runs to be collected. Stop it with Ctrl+C. Remove a platform session with <code>uv run focusfeed-collector clear-session &lt;platform&gt;</code>.</p>
       </section>
+      </details>
       <section className="stack">
         <h2>Paired collectors</h2>
         {devices?.length === 0 && <p className="muted">No collector paired yet.</p>}

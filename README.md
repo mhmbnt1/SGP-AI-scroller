@@ -22,6 +22,11 @@ This is a senior graduation project. **Read the status section before believing 
 | Mobile app (Expo SDK 58, expo-router, SecureStore) | Implemented; typecheck + Jest tests; **no emulator/device build executed** here |
 | CI (GitHub Actions) | Workflow committed (lint, types, tests, build, contract drift, secret/dependency scans); not yet observed green on GitHub |
 | Docker Compose | Written; **not executed** in this session (no Docker daemon available) |
+| **Phase 2** — AI providers (OpenAI, Anthropic, Gemini, xAI, hosted Ollama), vault, quotas | Implemented; contract-tested with mocked SDK calls; **no live provider call made** (docs/PROVIDERS.md) |
+| **Phase 2** — always-on hosted collection + phone-only sign-in (hosted browser) | Implemented; unit/contract/e2e-tested; **not tried against a real platform**; Windows collector stays optional |
+| **Phase 2** — readiness schedules, topic watches (RSS/Atom) | Implemented, tested on local fixtures |
+| **Phase 2** — WhatsApp via the official Cloud API (webhooks, linking, consent, outbox, conversation) | Implemented; mock transport + simulator + e2e; **no real message sent or received** (docs/WHATSAPP.md) |
+| **Phase 2** — account recovery by emailed code | Implemented; captured-mail tests; SMTP not exercised |
 
 Time-savings claims require real user evidence; none exists yet.
 
@@ -75,6 +80,12 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). In short: `FF_MODE=live`, `FF_LLM_
 | Evaluation harness | `uv run focusfeed-api evaluate` → `reports/evaluation.json` |
 
 ## Documentation
+
+**Continuing the work?** Start with [docs/HANDOFF.md](docs/HANDOFF.md).
+
+Phase 2 (multiple AI providers, always-on hosted collection, watches, WhatsApp, account recovery):
+[docs/PHASE2_SETUP.md](docs/PHASE2_SETUP.md) · [docs/PROVIDERS.md](docs/PROVIDERS.md) ·
+[docs/WHATSAPP.md](docs/WHATSAPP.md) · [docs/PHASE2_ACCEPTANCE.md](docs/PHASE2_ACCEPTANCE.md).
 
 * [STATUS.md](STATUS.md), [TASKS.md](TASKS.md) — continuation state and ordered remaining work
 * [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md) — AC-01…AC-15 with fixture vs live verification

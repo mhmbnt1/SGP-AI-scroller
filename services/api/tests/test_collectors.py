@@ -117,6 +117,9 @@ def live_mode(monkeypatch):
     from focusfeed_api.config import reset_settings_cache
 
     monkeypatch.setenv("FF_MODE", "live")
+    monkeypatch.setenv(
+        "FF_HOSTED_COLLECTION_ENABLED", "false"
+    )  # these tests cover the optional local-PC collector path
     reset_settings_cache()
     yield
     monkeypatch.setenv("FF_MODE", "test")

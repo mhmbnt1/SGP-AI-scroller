@@ -1,4 +1,4 @@
-import type { ConnectionOut, DeviceOut, ModelsOut, PreferencesOut, ScheduleOut } from "@focusfeed/contracts";
+import type { ConnectionOut, DeviceOut, ModelsOut, PreferencesOut, ScheduleIn, ScheduleOut } from "@focusfeed/contracts";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
@@ -40,7 +40,7 @@ export function SettingsScreen() {
     catch (e) { setError(e); }
   }
   async function toggleSchedule(s: ScheduleOut) {
-    await unwrap(api.PUT("/api/v1/schedules/{schedule_id}", { params: { path: { schedule_id: s.id } }, body: { timezone: s.timezone, local_time: s.local_time, days_of_week: s.days_of_week, platforms: s.platforms as ("youtube" | "instagram" | "demo")[], enabled: !s.enabled, missed_run_policy: s.missed_run_policy as "run_once" | "skip" } }));
+    await unwrap(api.PUT("/api/v1/schedules/{schedule_id}", { params: { path: { schedule_id: s.id } }, body: { timezone: s.timezone, local_time: s.local_time, days_of_week: s.days_of_week, platforms: s.platforms as ScheduleIn["platforms"], enabled: !s.enabled, missed_run_policy: s.missed_run_policy as ScheduleIn["missed_run_policy"], ready_by_time: s.ready_by_time, lead_minutes: s.lead_minutes, deliver_time: s.deliver_time, deliver_channels: s.deliver_channels as ScheduleIn["deliver_channels"] } }));
     await load();
   }
 
@@ -58,24 +58,26 @@ export function SettingsScreen() {
           <Button title="Edit preferences" onPress={() => router.push("/onboarding")} disabled={offline} />
         </Card>
         <Card>
-          <Text style={{ color: c.text, fontWeight: "700" }}>Collector & platforms</Text>
-          {devices.length === 0 ? <P muted>No collector paired. Pair one from the web app on your PC — phones can’t run the browser agent.</P> : devices.map((d) => <View key={d.id} style={{ flexDirection: "row", gap: 8, alignItems: "center" }}><Text style={{ color: c.text }}>{d.display_name}</Text><Badge kind={d.revoked_at ? "bad" : d.online ? "ok" : "default"}>{d.revoked_at ? "revoked" : d.online ? "online" : "offline"}</Badge></View>)}
-          {conns.map((cn) => <View key={cn.id} style={{ gap: 2 }}><View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}><Text style={{ color: c.text }}>{cn.platform}</Text><Badge kind={cn.status === "available" ? "ok" : cn.enabled ? "bad" : "default"}>{cn.enabled ? cn.status.replace(/_/g, " ") : "disabled"}</Badge></View><Text style={{ color: c.muted, fontSize: 12 }}>{cn.next_step}</Text></View>)}
-          <Button title="Connection guide" onPress={() => router.push("/connect")} />
+          <Text style={{ color: c.text, fontWeight: "700" }}>Sources (hosted collection)</Text>
+          {conns.length === 0 ? <P muted>Nothing connected yet. Sign in to your platforms from this phone; collection then runs on the service.</P> : conns.map((cn) => <View key={cn.id} style={{ flexDirection: "row", gap: 8, alignItems: "center" }}><Text style={{ color: c.text }}>{cn.platform}</Text><Badge kind={cn.status === "available" ? "ok" : cn.enabled ? "bad" : "default"}>{cn.enabled ? cn.status.replace(/_/g, " ") : "disabled"}</Badge></View>)}
+          {devices.length > 0 ? <P muted>Local collector: {devices.map((d) => `${d.display_name} (${d.revoked_at ? "revoked" : d.online ? "online" : "offline"})`).join(", ")}</P> : null}
+          <Button title="Manage sources" variant="primary" onPress={() => router.push("/sources")} />
+        </Card>
+        <Card>
+          <Text style={{ color: c.text, fontWeight: "700" }}>AI model</Text>
+          {models ? <Badge kind={models.provider_healthy ? "ok" : "bad"}>{models.provider}: {models.provider_detail}</Badge> : null}
+          <P muted>Choose which provider and model rank your batch. External providers require your explicit acknowledgement.</P>
+          <Button title="Choose AI model" onPress={() => router.push("/ai")} />
         </Card>
         <Card>
           <Text style={{ color: c.text, fontWeight: "700" }}>Schedules</Text>
-          {schedules.length === 0 ? <P muted>No schedules. Create them in the web app.</P> : schedules.map((s) => <View key={s.id} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}><Text style={{ color: c.text, flex: 1 }}>{s.local_time} {s.timezone}{"\n"}<Text style={{ color: c.muted, fontSize: 12 }}>{s.enabled && s.next_run_at ? `next ${new Date(s.next_run_at).toLocaleString()}` : "disabled"}</Text></Text><Button title={s.enabled ? "Disable" : "Enable"} disabled={offline} onPress={() => void toggleSchedule(s)} /></View>)}
+          {schedules.length === 0 ? <P muted>No schedules yet.</P> : schedules.map((s) => <View key={s.id} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}><Text style={{ color: c.text, flex: 1 }}>{s.ready_by_time ? `ready by ${s.ready_by_time}` : s.local_time} {s.timezone}{"\n"}<Text style={{ color: c.muted, fontSize: 12 }}>{s.enabled && s.next_run_at ? `next ${new Date(s.next_run_at).toLocaleString()}` : "disabled"}</Text></Text><Button title={s.enabled ? "Disable" : "Enable"} disabled={offline} onPress={() => void toggleSchedule(s)} /></View>)}
+          <Button title="Manage schedules" onPress={() => router.push("/schedules")} />
         </Card>
-        {models ? (
-          <Card>
-            <Text style={{ color: c.text, fontWeight: "700" }}>Models ({models.provider})</Text>
-            <Badge kind={models.provider_healthy ? "ok" : "bad"}>{models.provider_detail}</Badge>
-            <P muted>{models.resource_note}</P>
-            {models.options.map((o) => <Text key={`${o.purpose}-${o.name}`} style={{ color: c.text }}>{o.purpose}: {o.name}{o.is_default ? " (default)" : ""} — {o.available ? "available" : "not installed"}</Text>)}
-            <P muted>Choose a model under Preferences. Private feed content only goes to the configured local provider.</P>
-          </Card>
-        ) : null}
+        <Card>
+          <Text style={{ color: c.text, fontWeight: "700" }}>Watches & WhatsApp</Text>
+          <View style={{ flexDirection: "row", gap: 8 }}><Button title="Topic watches" onPress={() => router.push("/watches")} /><Button title="WhatsApp" onPress={() => router.push("/whatsapp")} /></View>
+        </Card>
         <Card>
           <Text style={{ color: c.text, fontWeight: "700" }}>Privacy</Text>
           <Button title="Summarise my export" onPress={() => void exportData()} disabled={offline} />

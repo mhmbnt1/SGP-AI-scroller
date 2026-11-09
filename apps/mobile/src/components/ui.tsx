@@ -85,3 +85,31 @@ const styles = StyleSheet.create({
   input: { minHeight: touch, borderWidth: 1, borderRadius: radius.sm, paddingHorizontal: 12, fontSize: 16 },
   notice: { borderWidth: 1, borderRadius: radius.sm, padding: space[3] },
 });
+
+/** Horizontal single-select chips (used instead of a picker so it works identically on iOS/Android/web). */
+export function Choice<T extends string>({ label, value, options, onChange, hint }: { label: string; value: T; options: { value: T; label: string; disabled?: boolean }[]; onChange: (v: T) => void; hint?: string }) {
+  const c = useColors();
+  return (
+    <View style={{ gap: 6 }} accessibilityRole="radiogroup" accessibilityLabel={label}>
+      <Text style={{ color: c.text, fontWeight: "600" }}>{label}{hint ? <Text style={{ color: c.muted, fontWeight: "400" }}>  {hint}</Text> : null}</Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {options.map((o) => (
+          <Pressable key={o.value} accessibilityRole="radio" accessibilityLabel={o.label} accessibilityState={{ selected: o.value === value, checked: o.value === value, disabled: !!o.disabled }} disabled={o.disabled} onPress={() => onChange(o.value)}
+            style={[styles.badge, { paddingVertical: 8, paddingHorizontal: 12, backgroundColor: o.value === value ? c.accent : c.surface, borderColor: o.value === value ? c.accent : c.border, opacity: o.disabled ? 0.5 : 1 }]}>
+            <Text style={{ color: o.value === value ? c.accentContrast : c.text }}>{o.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+export function Check({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+  const c = useColors();
+  return (
+    <Pressable accessibilityRole="checkbox" accessibilityLabel={label} accessibilityState={{ checked: value }} onPress={() => onChange(!value)} style={{ flexDirection: "row", gap: 10, alignItems: "flex-start", minHeight: touch, paddingVertical: 6 }}>
+      <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1, borderColor: value ? c.accent : c.border, backgroundColor: value ? c.accent : c.surface, alignItems: "center", justifyContent: "center", marginTop: 1 }}>{value ? <Text style={{ color: c.accentContrast, fontSize: 14 }}>✓</Text> : null}</View>
+      <Text style={{ color: c.text, flex: 1, lineHeight: 20 }}>{label}</Text>
+    </Pressable>
+  );
+}

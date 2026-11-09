@@ -88,6 +88,7 @@ def build_batch(
     provider: Provider | None,
     cancel: CancelToken | None = None,
     completion_status: str = "completed",
+    routing: Any | None = None,
 ) -> tuple[RecommendationBatch, dict[str, Any]]:
     """Idempotent: returns the existing batch if one was already persisted for this job."""
     found = existing_batch(db, job)
@@ -124,12 +125,16 @@ def build_batch(
             )
         )
 
-    text_model = prof.text_model or (
-        settings.ff_default_text_model if provider and provider.name == "ollama" else "fake-text"
-    )
-    embedding_model = prof.embedding_model or (
-        settings.ff_default_embedding_model if provider and provider.name == "ollama" else "fake-embed"
-    )
+    if routing is not None:
+        text_model = routing.chat_model
+        embedding_model = routing.embedding_model
+    else:
+        text_model = prof.text_model or (
+            settings.ff_default_text_model if provider and provider.name == "ollama" else "fake-text"
+        )
+        embedding_model = prof.embedding_model or (
+            settings.ff_default_embedding_model if provider and provider.name == "ollama" else "fake-embed"
+        )
     budget = job.budget or {}
     cfg = PipelineConfig(
         weights=settings.ranking_weights.model_dump(),

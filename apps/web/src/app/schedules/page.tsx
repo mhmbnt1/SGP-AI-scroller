@@ -14,7 +14,7 @@ type Plat = Form["platforms"][number];
 function SchedulesInner() {
   const [list, setList] = useState<ScheduleOut[] | null>(null);
   const [error, setError] = useState<unknown>(null);
-  const [form, setForm] = useState<Form>({ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC", local_time: "08:00", days_of_week: [0, 1, 2, 3, 4, 5, 6], platforms: [], enabled: true, missed_run_policy: "run_once" });
+  const [form, setForm] = useState<Form>({ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC", local_time: "08:00", days_of_week: [0, 1, 2, 3, 4, 5, 6], platforms: [], enabled: true, missed_run_policy: "run_once", ready_by_time: "19:00", lead_minutes: 60, deliver_time: null, deliver_channels: ["app"] });
   const [busy, setBusy] = useState(false);
   const load = useCallback(async () => { setError(null); try { setList(await unwrap(api.GET("/api/v1/schedules"))); } catch (e) { setError(e); } }, []);
   useEffect(() => { void load(); }, [load]);
@@ -24,7 +24,7 @@ function SchedulesInner() {
     try { await unwrap(api.POST("/api/v1/schedules", { body: form })); await load(); } catch (err) { setError(err); } finally { setBusy(false); }
   }
   async function toggle(s: ScheduleOut) {
-    await unwrap(api.PUT("/api/v1/schedules/{schedule_id}", { params: { path: { schedule_id: s.id } }, body: { timezone: s.timezone, local_time: s.local_time, days_of_week: s.days_of_week, platforms: s.platforms as Plat[], enabled: !s.enabled, missed_run_policy: s.missed_run_policy as Form["missed_run_policy"] } }));
+    await unwrap(api.PUT("/api/v1/schedules/{schedule_id}", { params: { path: { schedule_id: s.id } }, body: { timezone: s.timezone, local_time: s.local_time, days_of_week: s.days_of_week, platforms: s.platforms as Plat[], enabled: !s.enabled, missed_run_policy: s.missed_run_policy as Form["missed_run_policy"], ready_by_time: s.ready_by_time, lead_minutes: s.lead_minutes, deliver_time: s.deliver_time, deliver_channels: s.deliver_channels as Form["deliver_channels"] } }));
     await load();
   }
   async function remove(s: ScheduleOut) { await unwrap(api.DELETE("/api/v1/schedules/{schedule_id}", { params: { path: { schedule_id: s.id } } })); await load(); }
@@ -36,7 +36,11 @@ function SchedulesInner() {
       {error ? <ErrorBox error={error} onRetry={load} /> : null}
       <form className="card stack" onSubmit={create} aria-label="New schedule">
         <div className="grid-2">
-          <label>Local time<input type="time" value={form.local_time} onChange={(e) => setForm({ ...form, local_time: e.target.value })} required /></label>
+          <label>Ready by (local time) <span className="hint">we start collecting earlier so the batch is waiting</span><input type="time" value={form.ready_by_time ?? ""} onChange={(e) => setForm({ ...form, ready_by_time: e.target.value || null })} /></label>
+          <label>Lead time (minutes)<input type="number" min={10} max={720} value={form.lead_minutes} onChange={(e) => setForm({ ...form, lead_minutes: Number(e.target.value) })} /></label>
+          <label>Send to WhatsApp at <span className="hint">optional; empty = as soon as ready</span><input type="time" value={form.deliver_time ?? ""} onChange={(e) => setForm({ ...form, deliver_time: e.target.value || null })} /></label>
+          <label className="chip" data-checked={form.deliver_channels.includes("whatsapp")}><input type="checkbox" checked={form.deliver_channels.includes("whatsapp")} onChange={(e) => setForm({ ...form, deliver_channels: e.target.checked ? ["app", "whatsapp"] : ["app"] })} />Also deliver to WhatsApp (needs notifications enabled)</label>
+          <label>Local time (used when no “ready by”)<input type="time" value={form.local_time} onChange={(e) => setForm({ ...form, local_time: e.target.value })} required /></label>
           <label>Timezone (IANA)<input type="text" value={form.timezone} onChange={(e) => setForm({ ...form, timezone: e.target.value })} required maxLength={64} /></label>
         </div>
         <div className="checks" role="group" aria-label="Days of week">
@@ -52,7 +56,7 @@ function SchedulesInner() {
       {list?.map((s) => (
         <div key={s.id} className="card row" style={{ justifyContent: "space-between" }}>
           <div>
-            <strong>{s.local_time} {s.timezone}</strong> · {s.days_of_week.map((d) => DAYS[d]).join(", ")} · {s.platforms.length ? s.platforms.join(", ") : "preference platforms"}
+            <strong>{s.ready_by_time ? `ready by ${s.ready_by_time}` : s.local_time} {s.timezone}</strong>{s.deliver_channels.includes("whatsapp") ? " · WhatsApp" : ""} · {s.days_of_week.map((d) => DAYS[d]).join(", ")} · {s.platforms.length ? s.platforms.join(", ") : "preference platforms"}
             <div className="muted"><small>{s.enabled && s.next_run_at ? `Next run ${new Date(s.next_run_at).toLocaleString()}` : "Disabled"}{s.last_run_at ? ` · last ran ${new Date(s.last_run_at).toLocaleString()}` : ""}</small></div>
           </div>
           <div className="row"><Badge kind={s.enabled ? "ok" : ""}>{s.enabled ? "enabled" : "disabled"}</Badge><button className="btn-sm" onClick={() => void toggle(s)}>{s.enabled ? "Disable" : "Enable"}</button><button className="btn-sm btn-danger" onClick={() => void remove(s)}>Delete</button></div>
