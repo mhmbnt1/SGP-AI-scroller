@@ -81,6 +81,8 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). In short: `FF_MODE=live`, `FF_LLM_
 
 ## Documentation
 
+**Continuing the work?** Start with [docs/HANDOFF.md](docs/HANDOFF.md).
+
 Phase 2 (multiple AI providers, always-on hosted collection, watches, WhatsApp, account recovery):
 [docs/PHASE2_SETUP.md](docs/PHASE2_SETUP.md) · [docs/PROVIDERS.md](docs/PROVIDERS.md) ·
 [docs/WHATSAPP.md](docs/WHATSAPP.md) · [docs/PHASE2_ACCEPTANCE.md](docs/PHASE2_ACCEPTANCE.md).
